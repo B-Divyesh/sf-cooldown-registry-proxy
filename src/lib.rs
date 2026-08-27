@@ -293,6 +293,7 @@ struct Cache {
     ttl: Duration,
     offline: bool,
     client: Client,
+    writes: AtomicU64,
 }
 
 impl Cache {
@@ -311,6 +312,7 @@ impl Cache {
                 .timeout(Duration::from_secs(30))
                 .redirect(reqwest::redirect::Policy::limited(8))
                 .build()?,
+            writes: AtomicU64::new(1),
         })
     }
 
@@ -349,7 +351,11 @@ impl Cache {
             .map(|bytes| bytes.to_vec());
         match result {
             Ok(body) => {
-                let temp = path.with_extension(format!("tmp-{}", std::process::id()));
+                let temp = path.with_extension(format!(
+                    "tmp-{}-{}",
+                    std::process::id(),
+                    self.writes.fetch_add(1, Ordering::Relaxed)
+                ));
                 fs::write(&temp, &body)?;
                 fs::rename(temp, path)?;
                 Ok((body, "miss"))
@@ -434,35 +440,31 @@ impl App {
             audit: Mutex::new(audit),
             requests: AtomicU64::new(1),
         });
-        app.refresh_advisories();
+        app.refresh_advisories()?;
         Ok(app)
     }
 
-    fn refresh_advisories(&self) {
-        if self.config.offline || self.config.advisory_urls.is_empty() {
-            return;
+    fn refresh_advisories(&self) -> Result<()> {
+        if self.config.advisory_urls.is_empty() {
+            return Ok(());
         }
         let mut combined = Vec::new();
         for url in &self.config.advisory_urls {
-            match self
+            let (body, _) = self
                 .cache
-                .client
-                .get(url)
-                .send()
-                .and_then(|r| r.error_for_status())
-            {
-                Ok(response) => match response.json::<AdvisoryFile>() {
-                    Ok(feed) => combined.extend(feed.blocked),
-                    Err(error) => eprintln!("advisory feed parse failed for {url}: {error}"),
-                },
-                Err(error) => eprintln!("advisory feed refresh failed for {url}: {error}"),
-            }
+                .get(url, false)
+                .with_context(|| format!("advisory feed refresh failed for {url}"))?;
+            let feed: AdvisoryFile = serde_json::from_slice(&body)
+                .with_context(|| format!("advisory feed parse failed for {url}"))?;
+            combined.extend(feed.blocked);
         }
-        if !combined.is_empty() {
-            if let Ok(mut remote) = self.policy.remote.write() {
-                *remote = combined;
-            }
-        }
+        let mut remote = self
+            .policy
+            .remote
+            .write()
+            .map_err(|_| anyhow!("advisory policy lock is unavailable"))?;
+        *remote = combined;
+        Ok(())
     }
 
     fn request_id(&self) -> String {
@@ -1043,7 +1045,9 @@ pub fn run_server(config: ServerConfig) -> Result<()> {
         thread::spawn(move || loop {
             thread::sleep(interval);
             let Some(app) = weak.upgrade() else { break };
-            app.refresh_advisories();
+            if let Err(error) = app.refresh_advisories() {
+                eprintln!("{error:#}; retaining the last valid advisory snapshot");
+            }
         });
     }
     for request in server.incoming_requests() {

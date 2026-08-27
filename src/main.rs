@@ -83,14 +83,19 @@ struct ValidateArgs {
 }
 
 fn main() {
-    if let Err(error) = execute() {
-        eprintln!("error: {error:#}");
+    let cli = Cli::parse();
+    let json_output = cli.json;
+    if let Err(error) = execute(cli) {
+        if json_output {
+            eprintln!("{}", json!({"ok": false, "error": format!("{error:#}")}));
+        } else {
+            eprintln!("error: {error:#}");
+        }
         std::process::exit(2);
     }
 }
 
-fn execute() -> Result<()> {
-    let cli = Cli::parse();
+fn execute(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Validate(args) => {
             let summary =
