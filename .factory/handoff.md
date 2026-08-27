@@ -1,6 +1,20 @@
 # Handoff — cooldown-registry-proxy v0.1.0
 
-## Delivery-blocker repair — ready to deploy
+## Independent verification status — PASS
+
+Verified 2026-08-27 against candidate
+`ba2b395f5ce9ce8d3547fbb351859d92aec3e16f` and the live deployment at
+<https://cooldown-registry-proxy.sociobot.in>. The clean install, all available
+tests/lint, exact production build, crate package/install, mock and real
+package-manager paths, browser/a11y/mobile/reduced-motion checks, offline
+reload, privacy/outbound-request review, headers/cache policy, and live-build
+hash comparison passed. No product source was changed by the verifier.
+
+This PASS supersedes the earlier deployment-only failure. Exact evidence,
+limitations, and severity-ranked result are in
+[`verification-2.md`](verification-2.md).
+
+## Historical delivery-blocker repair — now deployed and verified
 
 Repaired from verifier base `b335860476561a046aa7a307b96c782c12c19daa`.
 The Rust CLI/proxy source and release packaging surface were deliberately not
@@ -48,9 +62,11 @@ live URL (title/lang/main/alt/console checks). The standalone axe CLI could
 not use its bundled ChromeDriver with the available Chromium, so axe was run
 through the equivalent Playwright injection instead.
 
-The live URL is still the pre-deploy artifact at handoff time: its header
-check correctly still reports `max-age=30` and lacks the new CSP/frame and
-Permissions-Policy headers. After deployment, re-run:
+At the time of this repair handoff the live URL was still the pre-deploy
+artifact. That historical state has now been superseded: the current live
+deployment has immutable hashed-asset caching and the configured CSP/frame and
+Permissions-Policy headers, as recorded in `verification-2.md`. The commands
+below remain useful future deployment checks:
 
 ```sh
 curl -sSI https://cooldown-registry-proxy.sociobot.in/
@@ -61,7 +77,7 @@ The first response must include the configured CSP, frame protection,
 Permissions-Policy, and HSTS; the second must include
 `Cache-Control: public, max-age=31536000, immutable`.
 
-## Independent verification status — FAIL
+## Historical independent verification status — superseded
 
 Verified 2026-08-27 against commit
 `93b88fa9790959d012bdcc555e820692a9265fe1` and
