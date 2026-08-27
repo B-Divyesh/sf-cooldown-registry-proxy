@@ -1,5 +1,66 @@
 # Handoff — cooldown-registry-proxy v0.1.0
 
+## Delivery-blocker repair — ready to deploy
+
+Repaired from verifier base `b335860476561a046aa7a307b96c782c12c19daa`.
+The Rust CLI/proxy source and release packaging surface were deliberately not
+changed.
+
+- `site/public/staticwebapp.config.json` is copied by Vite to the actual
+  `dist/site/` deploy root. It gives `/assets/*` a one-year immutable cache
+  policy and keeps pages and `sw.js` revalidating. Its global headers provide
+  a self-only CSP (with `frame-ancestors 'none'`), `X-Frame-Options: DENY`,
+  a restrictive Permissions-Policy, HSTS, Referrer-Policy, and `nosniff`.
+- The worker is generated only after Vite has emitted its final manifest, so
+  its precache contains the real hashed JS/CSS filenames rather than guessed
+  names. The `cooldown-shell-<sha>` cache revision hashes that shell and the
+  local shell assets, and old cooldown caches are removed on activation.
+- An updated worker waits. The controlled page exposes an accessible “Update
+  now” notice; its button sends `COOLDOWN_ACTIVATE_UPDATE`, after which the
+  worker calls `skipWaiting`, claims clients, and the page reloads on
+  `controllerchange`. This avoids both automatic mid-session takeover and a
+  client silently remaining on the obsolete worker.
+
+### Repair verification
+
+Executed successfully in this repair workspace:
+
+```sh
+npm ci
+cargo test
+cargo clippy --all-targets -- -D warnings
+npm test
+npm run build
+cargo package --allow-dirty
+```
+
+`npm test` now includes six site tests, including static-host header policy,
+shell JS/CSS precaching, versioned worker rendering, and explicit update
+activation. A production-output assertion verified every precache path exists
+in `dist/site`, including the final hashed JS and CSS files.
+
+Chromium/Playwright exercised the built site through a local static host:
+one `<h1>`/`main`/`lang=en`, no page or console errors, zero axe violations,
+an offline reload after worker control, and a simulated new worker. The
+simulated worker displayed the update notice and activated only after the
+button click. The factory `verify-url.sh` also passed against the current
+live URL (title/lang/main/alt/console checks). The standalone axe CLI could
+not use its bundled ChromeDriver with the available Chromium, so axe was run
+through the equivalent Playwright injection instead.
+
+The live URL is still the pre-deploy artifact at handoff time: its header
+check correctly still reports `max-age=30` and lacks the new CSP/frame and
+Permissions-Policy headers. After deployment, re-run:
+
+```sh
+curl -sSI https://cooldown-registry-proxy.sociobot.in/
+curl -sSI https://cooldown-registry-proxy.sociobot.in/assets/<hashed-file>.js
+```
+
+The first response must include the configured CSP, frame protection,
+Permissions-Policy, and HSTS; the second must include
+`Cache-Control: public, max-age=31536000, immutable`.
+
 ## Independent verification status — FAIL
 
 Verified 2026-08-27 against commit

@@ -145,6 +145,8 @@ select, input[type="text"] { width: 100%; padding: 9px 42px 9px 13px; border: 1p
 .final-cta { text-align: center; }
 .final-cta > p:not(.eyebrow) { color: var(--paper-muted); }
 .final-cta > div { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+.update-notice { position: fixed; right: 24px; bottom: 24px; z-index: 10; display: flex; align-items: center; gap: 16px; max-width: min(420px, calc(100% - 32px)); padding: 12px 12px 12px 16px; border: 1px solid var(--amber); border-left: 3px solid var(--signal); color: var(--paper); background: var(--terrain); box-shadow: 8px 8px 0 var(--ink); font: 13px/1.4 var(--mono); }
+.update-notice button { min-height: 44px; padding: 0 14px; border: 0; color: var(--signal-ink); background: var(--amber); font: 700 13px var(--mono); cursor: pointer; white-space: nowrap; }
 footer { min-height: 160px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 32px; border-top: 1px solid var(--line); color: var(--paper-muted); font-size: 13px; }
 footer p { margin: 0; text-align: center; }
 footer nav { justify-content: flex-end; }
@@ -194,6 +196,7 @@ footer nav { justify-content: flex-end; }
   .route__number { margin-bottom: 32px; }
   .terminal pre { min-height: 260px; padding: 20px; font-size: 12px; }
   #restore-license > div { grid-template-columns: 1fr; gap: 8px; }
+  .update-notice { right: 16px; bottom: 16px; }
   footer nav { gap: 18px; }
 }
 

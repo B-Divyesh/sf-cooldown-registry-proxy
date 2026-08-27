@@ -114,6 +114,42 @@ $('#restore-license')?.addEventListener('submit', (event) => {
 
 initializeLicense()
 
+function showUpdate(registration) {
+  if (document.querySelector('#update-notice')) return
+  const notice = document.createElement('aside')
+  notice.id = 'update-notice'
+  notice.className = 'update-notice'
+  notice.setAttribute('role', 'status')
+  notice.innerHTML = '<span>A new field guide is ready.</span><button type="button">Update now</button>'
+  $('footer')?.before(notice)
+  $('button', notice)?.addEventListener('click', () => {
+    registration.waiting?.postMessage({ type: 'COOLDOWN_ACTIVATE_UPDATE' })
+  })
+}
+
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js')
+      const promptForWaitingWorker = () => {
+        if (registration.waiting && navigator.serviceWorker.controller) showUpdate(registration)
+      }
+      promptForWaitingWorker()
+      registration.addEventListener('updatefound', () => {
+        const worker = registration.installing
+        worker?.addEventListener('statechange', () => {
+          if (worker.state === 'installed') window.setTimeout(promptForWaitingWorker, 0)
+        })
+      })
+      let refreshing = false
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true
+          window.location.reload()
+        }
+      })
+    } catch {
+      // The documentation remains fully usable when service workers are unavailable.
+    }
+  })
 }
