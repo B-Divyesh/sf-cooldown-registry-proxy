@@ -1,0 +1,12 @@
+{
+  "exclusions": [
+    {
+      "ecosystem": "npm",
+      "package": "@acme/security-fix",
+      "version": "2.4.1",
+      "expires": "2026-09-03T12:00:00Z",
+      "reason": "Emergency security update reviewed in SEC-418"
+    }
+  ]
+}
+

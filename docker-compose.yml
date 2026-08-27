@@ -1,0 +1,36 @@
+services:
+  registry:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    command:
+      - serve
+      - --listen
+      - 0.0.0.0:8787
+      - --public-url
+      - http://localhost:8787
+      - --cooldown
+      - 7d
+      - --cache-dir
+      - /var/lib/cooldown/cache
+      - --exclusions
+      - /etc/cooldown/exclusions.json
+      - --advisories
+      - /etc/cooldown/advisories.json
+      - --audit-log
+      - /var/log/cooldown/refusals.jsonl
+    volumes:
+      - registry-cache:/var/lib/cooldown
+      - registry-logs:/var/log/cooldown
+      - ./examples:/etc/cooldown:ro
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/cooldown-registry-proxy", "validate", "--exclusions", "/etc/cooldown/exclusions.json", "--advisories", "/etc/cooldown/advisories.json"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  registry-cache:
+  registry-logs:
+

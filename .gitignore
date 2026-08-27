@@ -1,6 +1,7 @@
-node_modules/
-dist/
-.env
+/target/
+/dist/
+/node_modules/
+/data/
 *.log
-graphify-out/
 .DS_Store
+

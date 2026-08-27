@@ -1,0 +1,12 @@
+{
+  "blocked": [
+    {
+      "ecosystem": "pypi",
+      "package": "example-package",
+      "version": "1.2.0",
+      "id": "MAL-2026-0042",
+      "reason": "Example only: credential-stealing behavior"
+    }
+  ]
+}
+
