@@ -1,5 +1,18 @@
 # Handoff — cooldown-registry-proxy v0.1.0
 
+## Independent verification status — FAIL
+
+Verified 2026-08-27 against commit
+`93b88fa9790959d012bdcc555e820692a9265fe1` and
+<https://cooldown-registry-proxy.sociobot.in>. The CLI/product paths, real
+package-manager smoke tests, build, package verification, browser checks, and
+live-to-build artifact hashes passed. **Do not release as verified**: the live
+host gives hashed static assets only `max-age=30` rather than immutable
+caching, and omits CSP/frame/Permissions-Policy browser hardening. The worker
+also does not precache its JS/CSS shell or use a per-build cache version.
+Exact evidence, test commands, and severity-ranked defects are in
+[`verification.md`](verification.md).
+
 Date: 2026-08-27
 
 Work order: `cooldown-registry-proxy-build-1`
