@@ -1,0 +1,9 @@
+{
+  "slug": "cooldown-registry-proxy",
+  "title": "Single-binary package registry proxy that enforces dependency cooldowns at the network layer",
+  "artifact_class": "cli",
+  "user": "Platform/security engineer at a 5-200 person team who must guarantee that no npm, PyPI, or crates package younger than N days reaches a developer machine or CI runner.",
+  "smallest_useful_product": "A static Rust binary exposing npm registry, PyPI simple-index, and Cargo sparse-index endpoints; caching artifacts, applying cooldown and expiring exclusions, blocking advisory-listed versions, and writing a refusal audit log.",
+  "monetization": "freemium",
+  "state": "BUILDING"
+}
