@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Enforce npm, PyPI, and Cargo dependency cooldowns at one network choke point with a single self-hosted binary.">
+    <meta name="theme-color" content="#071814">
+    <title>cooldown-registry-proxy — dependency quarantine at the network edge</title>
+    <link rel="icon" href="/mark.svg" type="image/svg+xml">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="/">
+        <svg aria-hidden="true" viewBox="0 0 40 40"><path d="M4 20C4 8 11 4 20 4s16 4 16 16-7 16-16 16S4 32 4 20Z"/><path d="M10 20c0-7 4-10 10-10s10 3 10 10-4 10-10 10-10-3-10-10Z"/><path d="M2 22h36"/></svg>
+        <span>cooldown<em>/</em>proxy</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#how">How it works</a>
+        <a href="#install">Install</a>
+        <a class="nav-cta" href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy">View source <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__copy">
+          <p class="eyebrow"><span></span> Network-level package quarantine</p>
+          <h1 id="hero-title">New dependencies wait at the boundary.</h1>
+          <p class="lede">One self-hosted binary enforces a release cooldown for npm, PyPI, and Cargo—across every laptop and CI runner behind it.</p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="#install">Deploy the proxy</a>
+            <a class="button button--secondary" href="#demo">Test the policy</a>
+          </div>
+          <dl class="hero__facts">
+            <div><dt>Ecosystems</dt><dd>npm · PyPI · Cargo</dd></div>
+            <div><dt>Policy point</dt><dd>One network choke point</dd></div>
+            <div><dt>Telemetry</dt><dd>None</dd></div>
+          </dl>
+        </div>
+        <figure class="hero__map">
+          <img src="/topographic-quarantine.webp" width="1200" height="800" alt="Topographic map showing fresh package markers stopped at an orange quarantine boundary while established packages sit in a safe basin" fetchpriority="high">
+          <figcaption><span>Contour 07D</span> Releases cross only after policy clearance</figcaption>
+        </figure>
+      </section>
+
+      <section class="trust-strip" aria-label="Core guarantees">
+        <p><span aria-hidden="true">◎</span> No TLS interception</p>
+        <p><span aria-hidden="true">▣</span> Immutable artifact cache</p>
+        <p><span aria-hidden="true">↯</span> Advisory blocks win</p>
+        <p><span aria-hidden="true">⌁</span> JSONL refusal trail</p>
+      </section>
+
+      <section class="section section--demo" id="demo" aria-labelledby="demo-title">
+        <div class="section-heading">
+          <p class="eyebrow">Policy field test</p>
+          <h2 id="demo-title">Move the age contour</h2>
+          <p>This local simulation shows exactly what package managers see. No request leaves your browser.</p>
+        </div>
+        <div class="demo-panel">
+          <div class="demo-controls">
+            <label for="cooldown">Minimum release age</label>
+            <div class="range-row">
+              <span>1d</span>
+              <input id="cooldown" type="range" min="1" max="30" value="7">
+              <span>30d</span>
+              <output id="cooldown-output" for="cooldown">7 days</output>
+            </div>
+            <label class="switch" for="offline-mode"><input id="offline-mode" type="checkbox"><span aria-hidden="true"></span> Simulate upstream outage</label>
+          </div>
+          <div class="map-key" aria-hidden="true"><span>Fresh ridge</span><i></i><span>Safe basin</span></div>
+          <ul class="release-list" id="release-list">
+            <li class="release release--quarantine"><span class="release__pin" aria-hidden="true"></span><span class="release__identity"><b>signal-router</b><span>npm · v4.8.0 · 0.8d old</span></span><span class="release__result"><b>Quarantined</b><span>7d until this version crosses the contour.</span></span></li>
+            <li class="release release--allowed"><span class="release__pin" aria-hidden="true"></span><span class="release__identity"><b>field-notes</b><span>PyPI · v2.3.1 · 10d old</span></span><span class="release__result"><b>Allowed</b><span>Older than the active cooldown.</span></span></li>
+            <li class="release release--blocked"><span class="release__pin" aria-hidden="true"></span><span class="release__identity"><b>vault-door</b><span>Cargo · v0.9.6 · 32d old</span></span><span class="release__result"><b>Hard blocked</b><span>Advisory MAL-2026-041 wins over age and exclusions.</span></span></li>
+          </ul>
+          <p class="sr-only" id="demo-status" aria-live="polite"></p>
+          <p class="demo-note"><b>Direct URLs do not bypass the boundary.</b> Every tarball or crate download is checked again against current publish time, exclusions, and advisory blocks.</p>
+        </div>
+      </section>
+
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="section-heading section-heading--row">
+          <div><p class="eyebrow">A small enforcement plane</p><h2 id="how-title">Policy before package</h2></div>
+          <p>Keep your existing public registries. Change one registry URL at the organization edge.</p>
+        </div>
+        <ol class="route">
+          <li><span class="route__number">01</span><h3>Client asks</h3><p>npm, pip, uv, and Cargo speak their normal registry protocols. No wrapper or local plugin.</p></li>
+          <li><span class="route__number">02</span><h3>Proxy surveys</h3><p>Publish time, a live exclusion file, and refreshed advisory feeds resolve to one decision.</p></li>
+          <li><span class="route__number">03</span><h3>Policy answers</h3><p>Old releases pass. Young versions disappear or return 404. Known malware returns 451.</p></li>
+          <li><span class="route__number">04</span><h3>Evidence remains</h3><p>Artifacts cache on disk and every refusal lands in an append-only JSONL audit trail.</p></li>
+        </ol>
+      </section>
+
+      <section class="section install" id="install" aria-labelledby="install-title">
+        <div class="install__copy">
+          <p class="eyebrow">Five-minute deployment</p>
+          <h2 id="install-title">One binary. One boundary.</h2>
+          <p>Run behind your existing TLS ingress, then point package managers at its protocol-specific path.</p>
+          <label for="package-manager">Package manager</label>
+          <select id="package-manager">
+            <option value="npm">npm / pnpm / Bun</option>
+            <option value="pypi">pip / uv</option>
+            <option value="cargo">Cargo</option>
+          </select>
+          <a class="text-link" href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy#usage">Read the operator guide <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="terminal" aria-label="Installation command">
+          <div class="terminal__bar"><span>client.config</span><button type="button" data-copy="install-code">Copy</button></div>
+          <pre tabindex="0" aria-label="Client configuration, horizontally scrollable"><code id="install-code">npm config set registry https://registry.internal/npm/&#10;npm install</code></pre>
+          <div class="terminal__status"><span class="status-dot"></span> registry.internal · policy active · 7d</div>
+        </div>
+      </section>
+
+      <section class="section operator" id="operator-pack" aria-labelledby="operator-title">
+        <div>
+          <p class="eyebrow">Optional operator pack</p>
+          <h2 id="operator-title">Production runbooks, once.</h2>
+          <p>The proxy remains fully open and ungated. A one-time <strong>$49 Operator Pack</strong> unlocks the hardened ingress checklist, SIEM mappings, incident-response runbook, and hosted-dashboard early access.</p>
+          <p class="legal-note">One-time purchase. Sociobot/Dodo is the merchant of record and handles refunds; refunded licenses are revoked automatically.</p>
+        </div>
+        <div class="operator__action">
+          <a class="button button--primary" href="https://api.sociobot.in/api/v1/products/cooldown-registry-proxy/checkout">Buy Operator Pack</a>
+          <form id="restore-license">
+            <label for="license-token">Have a license? Paste it</label>
+            <div><input id="license-token" name="license" type="text" autocomplete="off" spellcheck="false"><button type="submit">Verify license</button></div>
+          </form>
+          <p id="license-notice" class="license-notice" aria-live="polite">No license stored. The full proxy remains free.</p>
+          <div id="operator-content" class="operator-content" hidden>
+            <b>Operator Pack unlocked</b>
+            <p>Your runbook download will appear here when the factory publishes the pack.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section final-cta" aria-labelledby="final-title">
+        <p class="eyebrow">Hold the line</p>
+        <h2 id="final-title">Make “too new” unreachable.</h2>
+        <p>Open source, self-hosted, and small enough to understand before you trust it.</p>
+        <div><a class="button button--primary" href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy">Get v0.1.0 on GitHub</a><a class="button button--secondary" href="#install">See client config</a></div>
+      </section>
+    </main>
+
+    <footer>
+      <a class="brand" href="/"><span>cooldown<em>/</em>proxy</span></a>
+      <p>Dependency age is a policy, not a suggestion.</p>
+      <nav aria-label="Footer navigation"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy">Source</a></nav>
+    </footer>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

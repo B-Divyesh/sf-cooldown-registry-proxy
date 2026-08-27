@@ -235,9 +235,15 @@ impl PolicyStore {
         published: DateTime<Utc>,
     ) -> Decision {
         let package_key = package.to_lowercase();
-        let mut blocks = read_advisories(self.advisories_path.as_deref())
-            .unwrap_or_default()
-            .blocked;
+        let mut blocks = match read_advisories(self.advisories_path.as_deref()) {
+            Ok(file) => file.blocked,
+            Err(error) => {
+                return Decision::HardBlocked {
+                    id: "POLICY-READ-ERROR".into(),
+                    reason: format!("advisory policy could not be read: {error}"),
+                }
+            }
+        };
         blocks.extend(self.remote.read().map(|v| v.clone()).unwrap_or_default());
         if let Some(block) = blocks.iter().find(|item| {
             item.ecosystem == ecosystem
@@ -251,17 +257,21 @@ impl PolicyStore {
         }
 
         let now = Utc::now();
-        if let Some(exclusion) = read_exclusions(self.exclusions_path.as_deref())
-            .unwrap_or_default()
-            .exclusions
-            .into_iter()
-            .find(|item| {
-                item.ecosystem == ecosystem
-                    && item.package.to_lowercase() == package_key
-                    && item.version == version
-                    && item.expires > now
-            })
-        {
+        let exclusions = match read_exclusions(self.exclusions_path.as_deref()) {
+            Ok(file) => file.exclusions,
+            Err(error) => {
+                return Decision::HardBlocked {
+                    id: "POLICY-READ-ERROR".into(),
+                    reason: format!("exclusion policy could not be read: {error}"),
+                }
+            }
+        };
+        if let Some(exclusion) = exclusions.into_iter().find(|item| {
+            item.ecosystem == ecosystem
+                && item.package.to_lowercase() == package_key
+                && item.version == version
+                && item.expires > now
+        }) {
             return Decision::Excluded {
                 reason: exclusion.reason,
                 expires: exclusion.expires,
@@ -1009,7 +1019,15 @@ impl App {
             urlencoding::encode(&crate_name),
             urlencoding::encode(&version)
         );
-        let (body, cache) = self.cache.get(&url, true)?;
+        let (mut body, mut cache) = self.cache.get(&url, true)?;
+        // crates.io may answer the API download route with a JSON pointer rather
+        // than an HTTP redirect. Follow that pointer without exposing it to Cargo,
+        // which expects the response body to be the checksummed .crate archive.
+        if let Ok(pointer) = serde_json::from_slice::<Value>(&body) {
+            if let Some(download_url) = pointer.get("url").and_then(Value::as_str) {
+                (body, cache) = self.cache.get(download_url, true)?;
+            }
+        }
         let mut response = AppResponse::text(200, "application/octet-stream", body);
         response.cache = Some(cache);
         Ok(response)
@@ -1169,5 +1187,78 @@ mod tests {
         let path = dir.join("advisories.json");
         fs::write(&path, r#"{"blocked":[{"ecosystem":"cargo","package":"x","version":"1","id":"A","reason":"bad"},{"ecosystem":"cargo","package":"X","version":"1","id":"B","reason":"worse"}]}"#).unwrap();
         assert!(validate_policy_files(None, Some(&path)).is_err());
+    }
+
+    #[test]
+    fn npm_metadata_and_direct_download_share_the_cooldown() {
+        let upstream = Server::http("127.0.0.1:0").unwrap();
+        let upstream_url = format!("http://{}", upstream.server_addr());
+        let old_time = (Utc::now() - chrono::Duration::days(10)).to_rfc3339();
+        let fresh_time = Utc::now().to_rfc3339();
+        let packument = json!({
+            "name": "demo",
+            "dist-tags": {"latest": "2.0.0"},
+            "time": {"1.0.0": old_time, "2.0.0": fresh_time},
+            "versions": {
+                "1.0.0": {"dist": {"tarball": format!("{upstream_url}/demo-1.0.0.tgz")}},
+                "2.0.0": {"dist": {"tarball": format!("{upstream_url}/demo-2.0.0.tgz")}}
+            }
+        });
+        let upstream_thread = thread::spawn(move || {
+            for _ in 0..2 {
+                let request = upstream.recv().unwrap();
+                request
+                    .respond(Response::from_string(packument.to_string()).with_header(
+                        Header::from_bytes("Content-Type", "application/json").unwrap(),
+                    ))
+                    .unwrap();
+            }
+        });
+
+        let dir = std::env::temp_dir().join(format!(
+            "crp-npm-integration-{}-{}",
+            std::process::id(),
+            Utc::now().timestamp_nanos_opt().unwrap_or_default()
+        ));
+        let config = ServerConfig {
+            listen: "127.0.0.1:0".into(),
+            public_url: Some("http://proxy.test".into()),
+            cooldown: Duration::from_secs(7 * 86_400),
+            cache_dir: dir.join("cache"),
+            exclusions: None,
+            advisories: None,
+            advisory_urls: Vec::new(),
+            advisory_refresh: Duration::from_secs(3600),
+            audit_log: dir.join("audit.jsonl"),
+            offline: false,
+            cache_ttl: Duration::from_secs(0),
+            npm_upstream: upstream_url,
+            pypi_upstream: "http://unused.test".into(),
+            cargo_index_upstream: "http://unused.test".into(),
+            crates_api_upstream: "http://unused.test".into(),
+        };
+        let app = App::new(config).unwrap();
+        let metadata = app.handle(&Method::Get, "/npm/demo", Some("proxy.test"));
+        assert_eq!(metadata.status, 200);
+        let value: Value = serde_json::from_slice(&metadata.body).unwrap();
+        assert!(value["versions"].get("1.0.0").is_some());
+        assert!(value["versions"].get("2.0.0").is_none());
+        assert_eq!(value["dist-tags"]["latest"], "1.0.0");
+        assert!(value["versions"]["1.0.0"]["dist"]["tarball"]
+            .as_str()
+            .unwrap()
+            .starts_with("http://proxy.test/npm-tarball/"));
+
+        let direct = app.handle(
+            &Method::Get,
+            "/npm-tarball/demo/2.0.0/demo-2.0.0.tgz",
+            Some("proxy.test"),
+        );
+        assert_eq!(direct.status, 404);
+        let refusal: Value = serde_json::from_slice(&direct.body).unwrap();
+        assert_eq!(refusal["error"], "version_in_cooldown");
+        upstream_thread.join().unwrap();
+        let audit = fs::read_to_string(dir.join("audit.jsonl")).unwrap();
+        assert!(audit.contains("cooldown_block"));
     }
 }
