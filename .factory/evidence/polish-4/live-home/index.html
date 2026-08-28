@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Block npm, PyPI, and Cargo packages until their release cooldown ends.">
+    <meta name="theme-color" content="#071814">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Cooldown Proxy — block packages that are too new">
+    <meta property="og:description" content="Block npm, PyPI, and Cargo packages until their release cooldown ends.">
+    <meta property="og:image" content="https://cooldown-registry-proxy.sociobot.in/social-card.webp">
+    <meta property="og:url" content="https://cooldown-registry-proxy.sociobot.in/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Cooldown Proxy — block packages that are too new">
+    <meta name="twitter:description" content="Block npm, PyPI, and Cargo packages until their release cooldown ends.">
+    <meta name="twitter:image" content="https://cooldown-registry-proxy.sociobot.in/social-card.webp">
+    <link rel="canonical" href="https://cooldown-registry-proxy.sociobot.in/">
+    <link rel="icon" href="/mark.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <title>Cooldown Proxy — block packages that are too new</title>
+    <script type="module" crossorigin src="/assets/main-DnCCBHrM.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/main-DrggPvNd.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Cooldown Proxy home"><svg aria-hidden="true" viewBox="0 0 40 40"><path d="M4 20C4 8 11 4 20 4s16 4 16 16-7 16-16 16S4 32 4 20Z"/><path d="M10 20c0-7 4-10 10-10s10 3 10 10-4 10-10 10-10-3-10-10Z"/><path d="M2 22h36"/></svg><span>cooldown<em>/</em>proxy</span></a>
+      <nav aria-label="Primary navigation"><a href="/demo/">Demo</a><a href="/#how">How it works</a><a href="/#install">Setup</a><a class="nav-cta" href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy">View source on GitHub <span aria-hidden="true">↗</span></a></nav>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero__copy">
+          <p class="eyebrow"><span></span> Package release cooldown proxy</p>
+          <h1 id="hero-title" tabindex="-1">Block new packages until their cooldown ends.</h1>
+          <p class="lede">For platform and security teams enforcing one npm, PyPI, and Cargo cooldown across laptops and CI.</p>
+          <div class="hero__actions"><a class="button button--primary" href="/demo/">Try it with sample data</a><span class="action-note">See an allowed release, a cooldown block, and an advisory block.</span><a class="button button--secondary" href="#install">View setup commands</a></div>
+          <dl class="hero__facts"><div><dt>Privacy</dt><dd>Separate demo data</dd></div><div><dt>Offline</dt><dd>Demo reloads after one visit</dd></div><div><dt>Price</dt><dd>MIT-licensed source</dd></div></dl>
+        </div>
+        <figure class="hero__map"><img src="/topographic-quarantine.webp" width="1200" height="800" alt="Topographic map showing fresh package markers stopped at an orange boundary while established packages are allowed" fetchpriority="high"><figcaption><span>7-day cooldown</span> Newer releases stop here</figcaption></figure>
+      </section>
+      <section class="trust-strip" aria-label="Proxy behavior"><p><span aria-hidden="true">◎</span> Filters registry lists</p><p><span aria-hidden="true">▣</span> Checks direct downloads</p><p><span aria-hidden="true">↯</span> Records blocked requests</p></section>
+      <section class="section" id="how" aria-labelledby="how-title">
+        <div class="section-heading section-heading--row"><div><p class="eyebrow">Request path</p><h2 id="how-title">How requests are checked</h2></div><p>One proxy checks npm, PyPI, and Cargo requests before packages reach laptops or CI.</p></div>
+        <ol class="route"><li><span class="route__number">01</span><h3>Point clients at the proxy</h3><p>Use its npm, PyPI, or Cargo URL in client configuration.</p></li><li><span class="route__number">02</span><h3>Check release age</h3><p>The proxy compares publish time with your cooldown.</p></li><li><span class="route__number">03</span><h3>Return a decision</h3><p>Allowed files download. Each blocked package version adds a refusal record.</p></li></ol>
+      </section>
+      <section class="section install" id="install" aria-labelledby="install-title">
+        <div class="install__copy"><p class="eyebrow">Self-hosted setup</p><h2 id="install-title">Configure each package manager</h2><p>Run the binary on a trusted network. Then point clients at its registry path.</p><label for="package-manager">Package manager</label><select id="package-manager"><option value="npm">npm / pnpm / Bun</option><option value="pypi">pip / uv</option><option value="cargo">Cargo</option></select><a class="text-link" href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy#run-the-proxy">Read setup guidance on GitHub <span aria-hidden="true">↗</span></a></div>
+        <div class="terminal" aria-label="Example client configuration"><div class="terminal__bar"><span>example-client.config</span><button type="button" data-copy="install-code">Copy npm config</button></div><pre tabindex="0" aria-label="Example client configuration, horizontally scrollable"><code id="install-code">npm config set registry https://registry.internal/npm/&#10;npm install</code></pre><div class="terminal__status"><span class="status-dot"></span> Example: 7-day cooldown</div></div>
+      </section>
+      <section class="section boundaries" aria-labelledby="boundaries-title"><div class="section-heading"><p class="eyebrow">Limits and privacy</p><h2 id="boundaries-title">What the proxy does not do</h2><p>Private package hosting, user authentication, and code scanning are outside its scope.</p><p>You operate its network, cache, and refusal log.</p><a class="text-link" href="/privacy/">Read the privacy notice</a></div></section>
+      <section class="section final-cta" aria-labelledby="final-title"><p class="eyebrow">Try the policy</p><h2 id="final-title">See three package decisions.</h2><p>The isolated sample shows one allowed package and two blocks.</p><div><a class="button button--primary" href="/demo/">Try it with sample data</a><a class="button button--secondary" href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy">View source on GitHub</a></div></section>
+    </main>
+    <footer><a class="brand" href="/"><span>cooldown<em>/</em>proxy</span></a><p>Release-age checks for package registries.<br>Built by Param Factory · v0.1.0</p><nav aria-label="Footer navigation"><a href="/demo/">Demo</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-cooldown-registry-proxy">View source on GitHub</a></nav></footer>
+  </body>
+</html>

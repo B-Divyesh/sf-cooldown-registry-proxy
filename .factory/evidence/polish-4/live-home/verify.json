@@ -1,0 +1,14 @@
+{
+  "url": "https://cooldown-registry-proxy.sociobot.in",
+  "loadMs": 820,
+  "errors": [],
+  "a11y": {
+    "title": "Cooldown Proxy — block packages that are too new",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1883
+  }
+}
