@@ -1,4 +1,57 @@
-# Handoff — polish round 4
+# Handoff — adversarial review 5
+
+Date: 2026-08-28
+
+Work order: `cooldown-registry-proxy-review-5`
+
+## Delivered
+
+- Performed an independent no-product-code-change review and wrote
+  `.factory/review-5.md`.
+- Rechecked the deployed product cold at 390 × 844 and 1440 × 900. The job,
+  audience, sample action, action outcome, and privacy/offline/price facts are
+  visible before scrolling.
+- Rechecked browser and CLI demo isolation, reset/exit, live same-origin
+  traffic, offline reload, routes, metadata, 404, links, focus/back,
+  accessibility coverage, every claim, prior findings, and visual identity.
+
+## Verification
+
+- New clone: `/tmp/cooldown-review5-clone.wTNP2l` at
+  `ea21b8878d89d68a0a6d63aa6cc24930dbf6fbe9`.
+- `npm ci` completed; all 24 `.factory/claims.json` commands passed separately.
+- `npm test`, `npm run build`, and `npm run test:browser` passed. The browser
+  suite passed 15/15, including axe, demo, offline, metadata, routing, and
+  interaction checks.
+- A live intercepted Home → Demo → reset → exit flow used only same-origin
+  requests. Demo exit cleared browser storage; `/demo/` reloaded offline after
+  service-worker control.
+- A CLI demo from a new temporary invocation directory produced its own
+  temporary workspace with npm 404, PyPI 200, Cargo 451, four refusal records,
+  and five cache files.
+
+## Run and verify
+
+```sh
+npm ci
+npm test
+npm run build
+npm run test:browser
+cargo run --release -- demo
+```
+
+Open `https://cooldown-registry-proxy.sociobot.in/?demo=1` for the browser
+sample.
+
+## Known gaps and next steps
+
+No open review findings. Preserve the clean-clone claim matrix and cold-live
+checks whenever public copy, policy behavior, build output, or demo isolation
+changes.
+
+---
+
+# Previous handoff — polish round 4
 
 Date: 2026-08-28
 
