@@ -1,1 +1,1 @@
-Block new npm, PyPI, and Cargo releases until the configured cooldown ends.
+Block too-new npm, PyPI, and Cargo packages at one registry proxy.

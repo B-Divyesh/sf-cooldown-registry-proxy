@@ -158,8 +158,8 @@ test('keyboard controls expose visible focus without traps', async ({ page }) =>
   await expect(page.getByLabel('Minimum release age')).toHaveValue('8')
 })
 
-test('capture polish evidence at mobile and desktop sizes', async ({ page }) => {
-  const evidence = '.factory/evidence/polish-1'
+test('capture polish round two evidence at mobile and desktop sizes', async ({ page }) => {
+  const evidence = '.factory/evidence/polish-2'
   mkdirSync(evidence, { recursive: true })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')

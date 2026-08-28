@@ -22,6 +22,18 @@ test('claims manifest has one and only one tagged test for every claim', () => {
   assert.deepEqual(new Set(tags), new Set(ids))
 })
 
+test('round two production claims match their listed evidence', () => {
+  const claims = new Map(JSON.parse(read('.factory/claims.json')).map((claim) => [claim.id, claim]))
+  assert.equal(claims.size, 22)
+  assert.match(claims.get('refusal-jsonl').claim, /Every request blocked by cooldown or advisory/)
+  assert.match(read('site/index.html'), /Each blocked request adds a refusal record/)
+  assert.match(read('README.md'), /Every blocked\s+request adds a JSONL refusal record/)
+  assert.match(claims.get('build-dist').claim, /dist\/bin.+dist\/site/)
+  assert.match(read('README.md'), /npm run build` writes the binary to `dist\/bin\/`/)
+  assert.match(claims.get('configured-local-output').claim, /configured paths/)
+  assert.match(read('site/privacy/index.html'), /cache and refusal log remain in the directory you choose/)
+})
+
 test('public copy uses plain words and keeps every sentence within 22 words', () => {
   const banned = /\b(?:leverage|seamless|effortless|robust|powerful|intuitive|reimagine|supercharge|unlock|delightful|journey|ecosystem|AI-powered)\b/i
   const htmlSource = read('site/index.html')
