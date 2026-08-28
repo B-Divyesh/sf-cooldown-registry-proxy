@@ -10,13 +10,15 @@ Review report: `d6e17711a12d5a8aa7f0b84a8fe7188b65fc5953`
 
 Repair implementation: `622d892`
 
+Verified evidence commit: `bf2c07f`
+
 Deployment: `7e2fac8f-8709-44e4-bd8f-53934365eede`
 
 Live URL: <https://cooldown-registry-proxy.sociobot.in>
 
 Evidence abbreviations:
 
-- `CC-CLAIMS` — clean clone `/tmp/cooldown-polish3-clean.62GsPO`; all 24
+- `CC-CLAIMS` — clean clone `/tmp/cooldown-polish3-final.Ulho3b`; all 24
   manifest commands passed separately and each selected exactly one tagged test.
 - `CC-FULL` — the final clean clone passed `npm test` (7 Rust and 33 Node tests),
   strict Clippy, `npm run build`, 14 Playwright tests, and `cargo package`.

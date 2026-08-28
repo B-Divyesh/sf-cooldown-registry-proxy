@@ -8,6 +8,8 @@ Live URL: <https://cooldown-registry-proxy.sociobot.in>
 
 Implementation commit: `622d892`
 
+Verified evidence commit: `bf2c07f`
+
 Deployment: `7e2fac8f-8709-44e4-bd8f-53934365eede`
 
 ## Delivered
@@ -39,7 +41,7 @@ Every review-1, review-2, and review-3 finding is mapped in
 
 ## Verification
 
-Fresh clone: `/tmp/cooldown-polish3-clean.62GsPO`.
+Fresh clone: `/tmp/cooldown-polish3-final.Ulho3b`.
 
 - Every one of the 24 `.factory/claims.json` commands passed separately and
   selected exactly one tagged test.
