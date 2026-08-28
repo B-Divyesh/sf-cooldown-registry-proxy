@@ -43,6 +43,7 @@ No font files are shipped because the system stacks are the fastest privacy-pres
 
 - Primary actions are solid signal-orange; secondary actions use a terrain fill and paper outline.
 - The interactive policy demo is a horizontal elevation profile. Changing cooldown redraws the safe/quarantine boundary and updates a textual result in an `aria-live` region.
+- A compact three-column survey strip repeats the live sample outcomes above the detailed elevation profile, keeping the complete policy result visible on phone and desktop entry screens.
 - Code examples are copyable from labeled buttons. Feedback changes the verb to “Copied” without shifting layout.
 - Navigation collapses to the essential install and repository actions at 390 px; the map illustration stacks below the value proposition.
 

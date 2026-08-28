@@ -24,10 +24,10 @@ test('claims manifest has one and only one tagged test for every claim', () => {
 
 test('round two production claims match their listed evidence', () => {
   const claims = new Map(JSON.parse(read('.factory/claims.json')).map((claim) => [claim.id, claim]))
-  assert.equal(claims.size, 22)
-  assert.match(claims.get('refusal-jsonl').claim, /Every request blocked by cooldown or advisory/)
-  assert.match(read('site/index.html'), /Each blocked request adds a refusal record/)
-  assert.match(read('README.md'), /Every blocked\s+request adds a JSONL refusal record/)
+  assert.equal(claims.size, 24)
+  assert.match(claims.get('refusal-jsonl').claim, /Each blocked package version/)
+  assert.match(read('site/index.html'), /Each blocked package version adds a refusal record/)
+  assert.match(read('README.md'), /Each blocked\s+package version adds one JSONL refusal record/)
   assert.match(claims.get('build-dist').claim, /dist\/bin.+dist\/site/)
   assert.match(read('README.md'), /npm run build` writes the binary to `dist\/bin\/`/)
   assert.match(claims.get('configured-local-output').claim, /configured paths/)
@@ -82,6 +82,7 @@ test('reviewed dead paid and versioned-download promises are absent', () => {
   ].map(read).join('\n')
   assert.doesNotMatch(publicCopy, /Buy Operator Pack|checkout|Get v0\.1\.0 on GitHub|one-time \$49|Five-minute deployment|Network-level package quarantine/i)
   assert.doesNotMatch(publicCopy, /policy active|registry\.internal · policy/i)
+  assert.doesNotMatch(publicCopy, /factory deploys|owns publishing credentials/i)
   assert.match(read('site/index.html'), /Example: 7-day cooldown/)
   assert.equal(existsSync(new URL('site/public/operator-pack.md', root)), false)
 })

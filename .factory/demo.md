@@ -39,4 +39,5 @@ The workspace contains:
   mock-upstream request.
 
 The command prints the workspace path. Remove that directory when finished.
-It never reads the current directory's configuration, cache, or log.
+It does not open the current directory's configuration, cache, or log. The
+claim test enforces this with a file-open guard and denies non-loopback sockets.

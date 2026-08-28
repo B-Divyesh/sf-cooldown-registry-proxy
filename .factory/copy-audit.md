@@ -1,10 +1,11 @@
-# Copy audit — polish round 2
+# Copy audit — polish round 3
 
 Date: 2026-08-28
 
 The first screen states the job, user, action, result, privacy, offline behavior,
-and price without scrolling at 390 × 844. Its seven-word headline starts with a
-verb. The supporting sentence has 16 words. The action result has 11 words.
+and price without scrolling at 390 × 844 and 1440 × 900. Its seven-word
+headline starts with a verb. The supporting sentence has 16 words. The action
+result has 11 words.
 
 ## Landing sentence inventory
 
@@ -27,7 +28,7 @@ verb. The supporting sentence has 16 words. The action result has 11 words.
 | 10 | Use its npm, PyPI, or Cargo URL in client configuration. | Pass |
 | 8 | The proxy compares publish time with your cooldown. | Pass |
 | 3 | Allowed files download. | Pass |
-| 7 | Each blocked request adds a refusal record. | Pass |
+| 8 | Each blocked package version adds a refusal record. | Pass |
 | 7 | Run the binary on a trusted network. | Pass |
 | 7 | Then point clients at its registry path. | Pass |
 | 5 | Read setup guidance on GitHub. | Pass |
@@ -44,6 +45,11 @@ commands,” “How requests are checked,” “Configure each package manager,�
 “What the proxy does not do.” No public sentence exceeds 22 words. The test
 `public copy uses plain words and keeps every sentence within 22 words` checks
 the landing page and README on every `npm test` run.
+
+The README now scopes the demo isolation sentence to files in the invocation
+directory. It also removes the unsupported statement about deployment and
+credential ownership. The demo terminal caption names the exact fields its
+claim test compares. No README sentence exceeds 22 words.
 
 ## Terminology
 

@@ -43,10 +43,10 @@
   },
   {
     "id": "refusal-jsonl",
-    "claim": "Every request blocked by cooldown or advisory adds a JSONL refusal record.",
+    "claim": "Each blocked package version adds one JSONL refusal record.",
     "where": "landing request path and behavior strip, README",
     "test": "node --test --test-name-pattern=@claim:refusal-jsonl site/src/claims.test.js",
-    "sandbox": "real serve process with private npm fixture; create cooldown and advisory refusals and match each response request ID to one JSONL row"
+    "sandbox": "production serve process; cover cooldown and advisory decisions on metadata and direct-download paths for npm, PyPI, and Cargo; match every response request ID to its JSONL rows"
   },
   {
     "id": "cli-demo-workspace",
@@ -57,10 +57,10 @@
   },
   {
     "id": "cli-demo-isolation",
-    "claim": "The CLI demo never reads or changes existing configuration, caches, or logs.",
+    "claim": "The CLI demo does not open existing working-directory configuration, caches, or logs.",
     "where": "README, demo documentation",
     "test": "node --test --test-name-pattern=@claim:cli-demo-isolation site/src/claims.test.js",
-    "sandbox": "run the built binary from a directory with sentinel real data; assert it is untouched and outputs are elsewhere"
+    "sandbox": "run the built binary under a file-open and socket guard from a directory with sentinel configuration, cache, and logs; deny current-directory access and non-loopback traffic"
   },
   {
     "id": "local-demo-output",
@@ -74,7 +74,7 @@
     "claim": "The proxy contacts only registry and advisory URLs in its configuration.",
     "where": "privacy page, README",
     "test": "node --test --test-name-pattern=@claim:configured-outbound site/src/claims.test.js",
-    "sandbox": "CLI demo with every configured upstream set to one private mock; assert the complete request path list"
+    "sandbox": "production serve process under a socket/DNS guard; deny non-loopback traffic and assert every request received by configured npm, PyPI, Cargo, and advisory fixtures"
   },
   {
     "id": "policy-files",
@@ -145,6 +145,20 @@
     "where": "browser demo",
     "test": "npx playwright test -g @claim:sample-values",
     "sandbox": "fresh browser through ?demo=1; assert every displayed version, age, cooldown, remaining time, and advisory ID"
+  },
+  {
+    "id": "terminal-recording",
+    "claim": "The terminal recording matches the bundled command's package names, decisions, HTTP statuses, evidence counts, and workspace wording.",
+    "where": "demo page terminal caption",
+    "test": "node --test --test-name-pattern=@claim:terminal-recording site/src/claims.test.js",
+    "sandbox": "fresh CLI demo report; compare every decision and evidence count with the self-hosted SVG recording"
+  },
+  {
+    "id": "local-output-sensitive-data",
+    "claim": "Refusal records can contain package names.",
+    "where": "README privacy and security",
+    "test": "node --test --test-name-pattern=@claim:local-output-sensitive-data site/src/claims.test.js",
+    "sandbox": "fresh CLI demo; parse refusal JSONL and find the known npm and Cargo package names"
   },
   {
     "id": "release-version",

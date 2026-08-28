@@ -1,1 +1,1 @@
-Block too-new npm, PyPI, and Cargo packages at one registry proxy.
+Block too-new npm, PyPI, and Cargo releases with one self-hosted registry proxy.

@@ -32,7 +32,26 @@ for (const [path, title] of routes) {
 
 test('@claim:demo-isolation demo preserves real data, resets its own key, and discards it on exit', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.addInitScript(() => localStorage.setItem('real:operator-settings', 'keep-me'))
+  await page.addInitScript(() => {
+    const originals = {
+      getItem: Storage.prototype.getItem,
+      setItem: Storage.prototype.setItem,
+      removeItem: Storage.prototype.removeItem,
+      clear: Storage.prototype.clear
+    }
+    const operations = []
+    Object.defineProperty(window, '__storageOperations', { value: operations })
+    Object.defineProperty(window, '__readStorageWithoutTrace', {
+      value: (key) => originals.getItem.call(localStorage, key)
+    })
+    for (const method of Object.keys(originals)) {
+      Storage.prototype[method] = function (...args) {
+        operations.push({ method, key: args[0] ?? null })
+        return originals[method].apply(this, args)
+      }
+    }
+    originals.setItem.call(localStorage, 'real:operator-settings', 'keep-me')
+  })
   await page.goto('/?demo=1')
   await expect(page).toHaveURL(/\/demo\/$/)
   await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible()
@@ -42,17 +61,23 @@ test('@claim:demo-isolation demo preserves real data, resets its own key, and di
   await page.getByLabel('Minimum release age').fill('1')
   await page.getByRole('button', { name: 'Reset demo' }).click()
   await expect(page.getByLabel('Minimum release age')).toHaveValue('7')
-  expect(await page.evaluate(() => localStorage.getItem('real:operator-settings'))).toBe('keep-me')
+  expect(await page.evaluate(() => window.__readStorageWithoutTrace('real:operator-settings'))).toBe('keep-me')
   expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual([
     'demo:cooldown-registry-proxy:policy',
     'real:operator-settings'
   ])
+  const operations = await page.evaluate(() => window.__storageOperations)
+  expect(operations.length).toBeGreaterThan(0)
+  expect(operations.every(({ key }) => key === 'demo:cooldown-registry-proxy:policy')).toBeTruthy()
+  expect(operations.some(({ method }) => method === 'getItem')).toBeTruthy()
+  expect(operations.some(({ method }) => method === 'setItem')).toBeTruthy()
+  expect(operations.some(({ method }) => method === 'removeItem')).toBeTruthy()
   await page.locator('footer').scrollIntoViewIfNeeded()
   await expect(page.locator('.demo-banner')).toBeVisible()
   await page.getByRole('link', { name: 'Start for real' }).click()
   expect(new URL(page.url()).pathname).toBe('/')
-  expect(await page.evaluate(() => localStorage.getItem('demo:cooldown-registry-proxy:policy'))).toBeNull()
-  expect(await page.evaluate(() => localStorage.getItem('real:operator-settings'))).toBe('keep-me')
+  expect(await page.evaluate(() => window.__readStorageWithoutTrace('demo:cooldown-registry-proxy:policy'))).toBeNull()
+  expect(await page.evaluate(() => window.__readStorageWithoutTrace('real:operator-settings'))).toBe('keep-me')
 })
 
 test('@claim:offline-sample demo reloads offline after its first visit', async ({ page, context }) => {
@@ -89,19 +114,35 @@ test('@claim:site-privacy complete landing and demo flow makes only same-origin 
   expect(requests.every((url) => new URL(url).origin === origin)).toBeTruthy()
 })
 
-test('mobile first screen shows the job, user, action, outcome, and all three facts', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Block new packages until their cooldown ends.')
-  await expect(page.locator('.hero').getByRole('link', { name: 'Try it with sample data' })).toBeVisible()
-  await expect(page.getByText('For platform and security teams')).toBeVisible()
-  await expect(page.getByText('See an allowed release, a cooldown block, and an advisory block.')).toBeVisible()
-  for (const fact of ['Separate demo data', 'Demo reloads after one visit', 'MIT-licensed source']) {
-    const box = await page.getByText(fact, { exact: true }).boundingBox()
-    expect(box).not.toBeNull()
-    expect(box.y + box.height).toBeLessThanOrEqual(844)
+test('mobile and desktop first screens show the job, user, action, outcome, and all three facts', async ({ page }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Block new packages until their cooldown ends.')
+    await expect(page.locator('.hero').getByRole('link', { name: 'Try it with sample data' })).toBeVisible()
+    await expect(page.getByText('For platform and security teams')).toBeVisible()
+    await expect(page.getByText('See an allowed release, a cooldown block, and an advisory block.')).toBeVisible()
+    for (const fact of ['Separate demo data', 'Demo reloads after one visit', 'MIT-licensed source']) {
+      const box = await page.getByText(fact, { exact: true }).boundingBox()
+      expect(box).not.toBeNull()
+      expect(box.y + box.height).toBeLessThanOrEqual(viewport.height)
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewport.width)
   }
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390)
+})
+
+test('one click shows all three demo outcomes in the first mobile and desktop viewport', async ({ page }) => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(viewport)
+    await page.goto('/')
+    await page.locator('.hero').getByRole('link', { name: 'Try it with sample data' }).click()
+    await expect(page).toHaveURL(/\/demo\/$/)
+    for (const result of ['Blocked by cooldown', 'Allowed', 'Blocked by advisory']) {
+      const box = await page.locator('.decision-summary').getByText(result, { exact: true }).boundingBox()
+      expect(box).not.toBeNull()
+      expect(box.y + box.height, `${result} should be above ${viewport.height}px`).toBeLessThanOrEqual(viewport.height)
+    }
+  }
 })
 
 test('direct routes, back navigation, heading focus, and the designed 404 work', async ({ page, request }) => {
@@ -158,8 +199,8 @@ test('keyboard controls expose visible focus without traps', async ({ page }) =>
   await expect(page.getByLabel('Minimum release age')).toHaveValue('8')
 })
 
-test('capture polish round two evidence at mobile and desktop sizes', async ({ page }) => {
-  const evidence = '.factory/evidence/polish-2'
+test('capture polish round three evidence at mobile and desktop sizes', async ({ page }) => {
+  const evidence = '.factory/evidence/polish-3'
   mkdirSync(evidence, { recursive: true })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')
@@ -169,6 +210,8 @@ test('capture polish round two evidence at mobile and desktop sizes', async ({ p
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/')
   await page.screenshot({ path: `${evidence}/home-desktop.png`, fullPage: true })
+  await page.goto('/demo/')
+  await page.screenshot({ path: `${evidence}/demo-desktop.png`, fullPage: true })
   await page.goto('/definitely-not-a-route')
   await page.screenshot({ path: `${evidence}/404-desktop.png`, fullPage: true })
 })

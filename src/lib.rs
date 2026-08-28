@@ -411,6 +411,7 @@ struct AppResponse {
     content_type: &'static str,
     body: Vec<u8>,
     cache: Option<&'static str>,
+    request_id: Option<String>,
 }
 
 impl AppResponse {
@@ -420,6 +421,7 @@ impl AppResponse {
             content_type: "application/json; charset=utf-8",
             body: serde_json::to_vec(&value).unwrap_or_else(|_| b"{}".to_vec()),
             cache: None,
+            request_id: None,
         }
     }
 
@@ -429,6 +431,7 @@ impl AppResponse {
             content_type,
             body: body.into(),
             cache: None,
+            request_id: None,
         }
     }
 }
@@ -564,10 +567,12 @@ impl App {
     fn handle(&self, method: &Method, raw_url: &str, host: Option<&str>) -> AppResponse {
         let request_id = self.request_id();
         if !matches!(method, Method::Get | Method::Head) {
-            return AppResponse::json(
+            let mut response = AppResponse::json(
                 405,
                 json!({"error": "method_not_allowed", "request_id": request_id}),
             );
+            response.request_id = Some(request_id);
+            return response;
         }
         let path = raw_url.split('?').next().unwrap_or(raw_url);
         let result = if path == "/healthz" {
@@ -614,7 +619,7 @@ impl App {
                 }),
             ))
         };
-        match result {
+        let mut response = match result {
             Ok(response) => response,
             Err(error) => {
                 let status = if error.to_string().contains("offline cache miss") {
@@ -631,7 +636,9 @@ impl App {
                     }),
                 )
             }
-        }
+        };
+        response.request_id = Some(request_id);
+        response
     }
 
     fn public_url(&self, host: Option<&str>) -> String {
@@ -1275,6 +1282,11 @@ fn respond(app: Arc<App>, request: Request) {
     }
     if let Some(cache) = result.cache {
         if let Ok(header) = Header::from_bytes("X-Cooldown-Cache", cache) {
+            response.add_header(header);
+        }
+    }
+    if let Some(request_id) = result.request_id {
+        if let Ok(header) = Header::from_bytes("X-Request-Id", request_id) {
             response.add_header(header);
         }
     }

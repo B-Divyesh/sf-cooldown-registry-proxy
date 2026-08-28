@@ -5,8 +5,8 @@ Block new packages until their cooldown ends.
 Cooldown Registry Proxy is for platform and security teams. One Rust binary
 checks npm, PyPI, and Cargo requests through a network proxy.
 
-It filters registry lists and rechecks direct package downloads. Every blocked
-request adds a JSONL refusal record. Private package hosting, user
+It filters registry lists and rechecks direct package downloads. Each blocked
+package version adds one JSONL refusal record. Private package hosting, user
 authentication, and code scanning are outside its scope.
 
 ## Install
@@ -30,8 +30,8 @@ The command creates a new temporary workspace. It runs the actual proxy paths
 against bundled npm, PyPI, and Cargo fixtures.
 
 The report shows an allowed download, a cooldown block, and an advisory block.
-It also records cache files and JSONL refusals inside the workspace. Existing
-configuration, caches, and logs are never read.
+It also records cache files and JSONL refusals inside the workspace. The demo
+does not open configuration, caches, or logs in the directory where you run it.
 
 Open <https://cooldown-registry-proxy.sociobot.in/?demo=1> for the browser
 sample. Its state uses a separate `demo:` browser key. The sample reloads
@@ -106,16 +106,16 @@ cargo package --allow-dirty
 ```
 
 `npm run build` writes the binary to `dist/bin/`. It writes the static site to
-`dist/site/`. The factory deploys the site and owns publishing credentials.
+`dist/site/`. Deploy `dist/site/` as static files.
 
 ## Privacy and security
 
 The documentation site loads no analytics or third-party runtime code. The
 proxy contacts only registry and advisory URLs in its configuration.
 
-Cache and refusal files stay in the directory you choose. They can contain
-package names, so protect that directory. Read [`SECURITY.md`](SECURITY.md)
-before reporting a vulnerability.
+Cache and refusal files stay in the directory you choose. Refusal records can
+contain package names, so protect them. Read [`SECURITY.md`](SECURITY.md) before
+reporting a vulnerability.
 
 ## License
 

@@ -34,6 +34,7 @@ const cooldown = $('#cooldown')
 const cooldownOutput = $('#cooldown-output')
 const offline = $('#offline-mode')
 const releaseList = $('#release-list')
+const decisionSummary = $('#decision-summary')
 const demoStatus = $('#demo-status')
 
 function demoState() {
@@ -46,11 +47,17 @@ function renderDemo() {
   if (!cooldown || !cooldownOutput || !releaseList) return
   const days = Number(cooldown.value)
   cooldownOutput.value = `${days} days`
-  releaseList.replaceChildren(...RELEASES.map((release) => {
-    const result = evaluateRelease(release, days, offline.checked)
+  const evaluated = RELEASES.map((release) => ({ release, result: evaluateRelease(release, days, offline.checked) }))
+  releaseList.replaceChildren(...evaluated.map(({ release, result }) => {
     const item = document.createElement('li')
     item.className = `release release--${result.state}`
     item.innerHTML = `<span class="release__pin" aria-hidden="true"></span><span class="release__identity"><b>${release.name}</b><span>${release.ecosystem} · v${release.version} · ${Math.round(release.ageHours / 24 * 10) / 10}d old</span></span><span class="release__result"><b>${result.label}</b><span>${result.detail}</span></span>`
+    return item
+  }))
+  decisionSummary?.replaceChildren(...evaluated.map(({ release, result }) => {
+    const item = document.createElement('li')
+    item.className = `decision-summary--${result.state}`
+    item.innerHTML = `<span>${release.name}</span><b>${result.label}</b>`
     return item
   }))
   const summary = policySummary(RELEASES, days, offline.checked)
