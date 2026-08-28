@@ -60,6 +60,12 @@ Results on 2026-08-28:
   reload.
 - `cargo package --allow-dirty`: PASS — packaged and verified
   `cooldown-registry-proxy v0.1.0`.
+- Clean-clone verification: PASS from `/tmp/cooldown-clean.TzV2AH` after
+  `git clone /work/repo`. It ran `npm ci`, every command from
+  `.factory/claims.json`, `npm test`, `npm run build`, the complete Playwright
+  suite, and `cargo package --allow-dirty`. Playwright recorded `status:
+  passed`; the clone produced both `dist/bin/cooldown-registry-proxy` and the
+  verified package directory.
 
 ## Deployment and release
 
