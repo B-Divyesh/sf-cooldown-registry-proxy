@@ -55,5 +55,5 @@ No font files are shipped because the system stacks are the fastest privacy-pres
 ## Original asset plan and provenance
 
 - `site/public/topographic-quarantine.webp`: original generated editorial cartography for the hero. Prompt: “A wide, text-free topographic security map at night: layered forest-green contour terrain, one precise vermilion quarantine boundary/checkpoint separating fresh package markers from an established safe basin, cream survey ticks, restrained screen-print texture, orthographic editorial composition, no logos, no words, no UI screenshots, generous negative space, high contrast.” Generated with the factory `factory-image` deployment via `/opt/fleet/lib/gen-image.sh`, 2026-08-27. Optimized locally to WebP. Intended as explanatory product artwork; no third-party source material.
-- Logo, route icons, contour rules, and demo markers are hand-authored CSS/SVG geometry in the repository, MIT with the product.
-
+- `site/public/social-card.webp` and `site/public/apple-touch-icon.png`: local crops of the original hero artwork, made with ImageMagick on 2026-08-28 for the 1200×630 social preview and 180×180 touch icon. They introduce no external source material.
+- Logo, route icons, contour rules, demo markers, and `site/public/demo-terminal.svg` are hand-authored CSS/SVG geometry in the repository, MIT with the product. The terminal still reproduces the bundled `demo` command's observable output and has a text caption.

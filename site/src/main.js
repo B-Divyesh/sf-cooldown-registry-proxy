@@ -3,6 +3,22 @@ import { RELEASES, evaluateRelease, policySummary } from './policy.js'
 
 const $ = (selector, root = document) => root.querySelector(selector)
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)]
+const isDemo = document.body.dataset.demo === 'true'
+const DEMO_KEY = 'demo:cooldown-registry-proxy:policy'
+
+if (!isDemo && new URL(window.location.href).searchParams.get('demo') === '1') window.location.replace('/demo/')
+
+function announcePage() {
+  const heading = $('main h1')
+  if (!heading) return
+  const announcer = document.createElement('p')
+  announcer.className = 'sr-only'
+  announcer.setAttribute('aria-live', 'polite')
+  announcer.textContent = `${document.title}. ${heading.textContent.trim()}`
+  document.body.append(announcer)
+  heading.focus({ preventScroll: true })
+}
+window.addEventListener('pageshow', announcePage, { once: true })
 
 const cooldown = $('#cooldown')
 const cooldownOutput = $('#cooldown-output')
@@ -10,7 +26,14 @@ const offline = $('#offline-mode')
 const releaseList = $('#release-list')
 const demoStatus = $('#demo-status')
 
+function demoState() {
+  try { return JSON.parse(localStorage.getItem(DEMO_KEY) || '{}') } catch { return {} }
+}
+function saveDemo() {
+  if (isDemo && cooldown && offline) localStorage.setItem(DEMO_KEY, JSON.stringify({ cooldown: cooldown.value, offline: offline.checked }))
+}
 function renderDemo() {
+  if (!cooldown || !cooldownOutput || !releaseList) return
   const days = Number(cooldown.value)
   cooldownOutput.value = `${days} days`
   releaseList.replaceChildren(...RELEASES.map((release) => {
@@ -21,135 +44,61 @@ function renderDemo() {
     return item
   }))
   const summary = policySummary(RELEASES, days, offline.checked)
-  demoStatus.textContent = `Policy recalculated: ${summary.allowed || 0} allowed, ${summary.quarantine || 0} quarantined, ${summary.blocked || 0} hard blocked, ${summary.offline || 0} offline cache misses.`
+  demoStatus.textContent = `Sample policy recalculated: ${summary.allowed || 0} allowed, ${summary.quarantine || 0} blocked by cooldown, ${summary.blocked || 0} blocked by advisory, ${summary.offline || 0} cache misses.`
+  saveDemo()
 }
-
-cooldown?.addEventListener('input', renderDemo)
-offline?.addEventListener('change', renderDemo)
-if (cooldown) renderDemo()
+if (isDemo && cooldown && offline) {
+  const saved = demoState()
+  cooldown.value = saved.cooldown || '7'
+  offline.checked = Boolean(saved.offline)
+  cooldown.addEventListener('input', renderDemo)
+  offline.addEventListener('change', renderDemo)
+  $('#reset-demo')?.addEventListener('click', () => {
+    localStorage.removeItem(DEMO_KEY)
+    cooldown.value = '7'
+    offline.checked = false
+    renderDemo()
+    demoStatus.textContent = 'Sample demo reset to the original 7-day policy.'
+  })
+  renderDemo()
+}
 
 const snippets = {
   npm: 'npm config set registry https://registry.internal/npm/\nnpm install',
   pypi: 'pip install --index-url https://registry.internal/pypi/simple/ PACKAGE\n# uv: UV_INDEX_URL=https://registry.internal/pypi/simple/ uv sync',
   cargo: '[source.crates-io]\nreplace-with = "cooldown"\n\n[source.cooldown]\nregistry = "sparse+https://registry.internal/cargo/"'
 }
-
 const packageManager = $('#package-manager')
 const installCode = $('#install-code')
-packageManager?.addEventListener('change', () => { installCode.textContent = snippets[packageManager.value] })
-
-$$('[data-copy]').forEach((button) => {
-  button.addEventListener('click', async () => {
-    const target = document.getElementById(button.dataset.copy)
-    const original = button.textContent
-    try {
-      await navigator.clipboard.writeText(target.textContent)
-      button.textContent = 'Copied'
-    } catch {
-      button.textContent = 'Select to copy'
-      const range = document.createRange()
-      range.selectNodeContents(target)
-      window.getSelection()?.removeAllRanges()
-      window.getSelection()?.addRange(range)
-    }
-    setTimeout(() => { button.textContent = original }, 1800)
-  })
+packageManager?.addEventListener('change', () => {
+  installCode.textContent = snippets[packageManager.value]
+  $('[data-copy]').textContent = `Copy ${packageManager.options[packageManager.selectedIndex].text.split(' ')[0]} config`
 })
-
-const SLUG = 'cooldown-registry-proxy'
-const API_BASE = 'https://api.sociobot.in/api/v1'
-const LICENSE_KEY = `sb_license:${SLUG}`
-const VERDICT_KEY = `${LICENSE_KEY}:verdict`
-const DAY = 86_400_000
-
-function showLicenseState(state, message) {
-  const notice = $('#license-notice')
-  const content = $('#operator-content')
-  if (!notice || !content) return
-  notice.dataset.state = state
-  notice.textContent = message
-  content.hidden = state !== 'valid'
-}
-
-async function verifyLicense(token, force = false) {
-  let cached = null
-  try { cached = JSON.parse(localStorage.getItem(VERDICT_KEY) || 'null') } catch { localStorage.removeItem(VERDICT_KEY) }
-  if (!force && cached?.token === token && Date.now() - cached.checkedAt < DAY) {
-    showLicenseState(cached.valid ? 'valid' : 'invalid', cached.valid ? 'Operator Pack active on this browser.' : 'License no longer active. You can restore another license or purchase a new one.')
-    return
+$$('[data-copy]').forEach((button) => button.addEventListener('click', async () => {
+  const target = document.getElementById(button.dataset.copy)
+  const original = button.textContent
+  try { await navigator.clipboard.writeText(target.textContent); button.textContent = 'Copied config' }
+  catch {
+    button.textContent = 'Select config to copy'
+    const range = document.createRange(); range.selectNodeContents(target)
+    window.getSelection()?.removeAllRanges(); window.getSelection()?.addRange(range)
   }
-  if (cached?.token === token && cached.valid) showLicenseState('valid', 'Operator Pack active. Checking license quietly…')
-  try {
-    const response = await fetch(`${API_BASE}/products/${SLUG}/verify?license=${encodeURIComponent(token)}`)
-    if (!response.ok) throw new Error('verification service unavailable')
-    const verdict = await response.json()
-    localStorage.setItem(VERDICT_KEY, JSON.stringify({ token, valid: verdict.valid, checkedAt: Date.now(), expiresAt: verdict.expires_at }))
-    showLicenseState(verdict.valid ? 'valid' : 'invalid', verdict.valid ? 'Operator Pack active on this browser.' : 'License no longer active. You can restore another license or purchase a new one.')
-  } catch {
-    if (!cached?.valid) showLicenseState('offline', 'License verification is temporarily offline. The free proxy and documentation remain available.')
-  }
-}
-
-function initializeLicense() {
-  const url = new URL(window.location.href)
-  const returnedLicense = url.searchParams.get('license')
-  if (returnedLicense) {
-    localStorage.setItem(LICENSE_KEY, returnedLicense)
-    url.searchParams.delete('license')
-    history.replaceState({}, '', url)
-  }
-  const token = returnedLicense || localStorage.getItem(LICENSE_KEY)
-  if (token) verifyLicense(token)
-}
-
-$('#restore-license')?.addEventListener('submit', (event) => {
-  event.preventDefault()
-  const input = $('#license-token')
-  const token = input.value.trim()
-  if (!token) return
-  localStorage.setItem(LICENSE_KEY, token)
-  verifyLicense(token, true)
-  input.value = ''
-})
-
-initializeLicense()
+  setTimeout(() => { button.textContent = original }, 1800)
+}))
 
 function showUpdate(registration) {
   if (document.querySelector('#update-notice')) return
   const notice = document.createElement('aside')
-  notice.id = 'update-notice'
-  notice.className = 'update-notice'
-  notice.setAttribute('role', 'status')
+  notice.id = 'update-notice'; notice.className = 'update-notice'; notice.setAttribute('role', 'status')
   notice.innerHTML = '<span>A new field guide is ready.</span><button type="button">Update now</button>'
   $('footer')?.before(notice)
-  $('button', notice)?.addEventListener('click', () => {
-    registration.waiting?.postMessage({ type: 'COOLDOWN_ACTIVATE_UPDATE' })
-  })
+  $('button', notice)?.addEventListener('click', () => registration.waiting?.postMessage({ type: 'COOLDOWN_ACTIVATE_UPDATE' }))
 }
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('/sw.js')
-      const promptForWaitingWorker = () => {
-        if (registration.waiting && navigator.serviceWorker.controller) showUpdate(registration)
-      }
-      promptForWaitingWorker()
-      registration.addEventListener('updatefound', () => {
-        const worker = registration.installing
-        worker?.addEventListener('statechange', () => {
-          if (worker.state === 'installed') window.setTimeout(promptForWaitingWorker, 0)
-        })
-      })
-      let refreshing = false
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true
-          window.location.reload()
-        }
-      })
-    } catch {
-      // The documentation remains fully usable when service workers are unavailable.
-    }
-  })
-}
+if ('serviceWorker' in navigator) window.addEventListener('load', async () => {
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js')
+    const prompt = () => { if (registration.waiting && navigator.serviceWorker.controller) showUpdate(registration) }
+    prompt()
+    registration.addEventListener('updatefound', () => registration.installing?.addEventListener('statechange', () => { if (registration.installing?.state === 'installed') prompt() }))
+  } catch { /* Static documentation remains usable without a worker. */ }
+})

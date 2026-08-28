@@ -1,0 +1,44 @@
+[
+  {
+    "id": "cooldown-block",
+    "claim": "Block new packages until their cooldown ends.",
+    "where": "landing headline, README",
+    "test": "npm run test:claims -- --test-name-pattern @claim:cooldown-block",
+    "sandbox": "fresh Node process; bundled npm sample at 7 days"
+  },
+  {
+    "id": "advisory-block",
+    "claim": "The sample shows an advisory block.",
+    "where": "landing action note, demo",
+    "test": "npm run test:claims -- --test-name-pattern @claim:advisory-block",
+    "sandbox": "fresh Node process; bundled Cargo sample"
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "Demo — sample data, nothing is saved.",
+    "where": "demo banner",
+    "test": "npx playwright test -g @claim:demo-isolation",
+    "sandbox": "fresh browser context; exercise reset and inspect storage keys and requests"
+  },
+  {
+    "id": "offline-sample",
+    "claim": "Sample loads after first visit.",
+    "where": "landing facts",
+    "test": "npx playwright test -g @claim:offline-sample",
+    "sandbox": "fresh browser context; wait for service-worker control, go offline, and reload /demo/"
+  },
+  {
+    "id": "cli-demo-workspace",
+    "claim": "The CLI sample copies policy fixtures into a new temporary workspace.",
+    "where": "demo CLI section, README",
+    "test": "npm run test:claims -- --test-name-pattern @claim:cli-demo-workspace",
+    "sandbox": "fresh temporary directory; cargo run -- demo --json"
+  },
+  {
+    "id": "mit-license",
+    "claim": "MIT source code.",
+    "where": "landing facts, README",
+    "test": "npm run test:claims -- --test-name-pattern @claim:mit-license",
+    "sandbox": "fresh repository checkout; inspect LICENSE and Cargo metadata"
+  }
+]

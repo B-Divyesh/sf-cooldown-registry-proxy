@@ -2,7 +2,8 @@ use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
 use cooldown_registry_proxy::{parse_duration, run_server, validate_policy_files, ServerConfig};
 use serde_json::json;
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Parser)]
 #[command(name = "cooldown-registry-proxy", version, about, long_about = None)]
@@ -21,6 +22,8 @@ enum Command {
     Serve(Box<ServeArgs>),
     /// Validate exclusion and advisory files without starting the server.
     Validate(ValidateArgs),
+    /// Create an isolated sample workspace and validate its proxy policy.
+    Demo(DemoArgs),
 }
 
 #[derive(Debug, Args)]
@@ -80,6 +83,13 @@ struct ValidateArgs {
     /// JSON file containing advisory hard blocks.
     #[arg(long)]
     advisories: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+struct DemoArgs {
+    /// Parent directory for the isolated sample workspace. A temporary directory is used by default.
+    #[arg(long)]
+    output_dir: Option<PathBuf>,
 }
 
 fn main() {
@@ -154,5 +164,60 @@ fn execute(cli: Cli) -> Result<()> {
             }
             run_server(config)
         }
+        Command::Demo(args) => run_demo(args, cli.json),
     }
+}
+
+fn copy_demo_file(source: &Path, destination: &Path) -> Result<()> {
+    fs::copy(source, destination)
+        .with_context(|| format!("copy bundled demo file {}", source.display()))?;
+    Ok(())
+}
+
+fn run_demo(args: DemoArgs, json_output: bool) -> Result<()> {
+    let stamp = format!(
+        "{}-{}",
+        std::process::id(),
+        chrono::Utc::now().timestamp_nanos_opt().unwrap_or_default()
+    );
+    let root = args.output_dir.unwrap_or_else(|| {
+        std::env::temp_dir().join(format!("cooldown-registry-proxy-demo-{stamp}"))
+    });
+    if root.exists() {
+        anyhow::bail!("demo workspace already exists: {}", root.display());
+    }
+    let policy_dir = root.join("policy");
+    let cache_dir = root.join("cache");
+    fs::create_dir_all(&policy_dir)?;
+    fs::create_dir_all(&cache_dir)?;
+    let bundled = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/demo");
+    let exclusions = policy_dir.join("exclusions.json");
+    let advisories = policy_dir.join("advisories.json");
+    copy_demo_file(&bundled.join("exclusions.json"), &exclusions)?;
+    copy_demo_file(&bundled.join("advisories.json"), &advisories)?;
+    copy_demo_file(&bundled.join("README.md"), &root.join("README.md"))?;
+    let summary = validate_policy_files(Some(&exclusions), Some(&advisories))?;
+    if json_output {
+        println!(
+            "{}",
+            json!({
+                "ok": true,
+                "workspace": root,
+                "cache_dir": cache_dir,
+                "audit_log": root.join("refusals.jsonl"),
+                "policy": summary,
+                "note": "Isolated sample workspace; no existing cache, configuration, or logs were read."
+            })
+        );
+    } else {
+        println!("Cooldown Registry Proxy sample workspace");
+        println!("  path: {}", root.display());
+        println!(
+            "  policy: {} exclusions, {} advisory blocks",
+            summary.exclusions, summary.blocked
+        );
+        println!("  next: cooldown-registry-proxy serve --cache-dir {}/cache --exclusions {}/policy/exclusions.json --advisories {}/policy/advisories.json", root.display(), root.display(), root.display());
+        println!("  sample data is isolated; remove this workspace when finished.");
+    }
+    Ok(())
 }

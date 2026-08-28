@@ -7,11 +7,13 @@
     "dev": "vite site --host 0.0.0.0",
     "test": "cargo test && npm run test:site",
     "test:site": "node --test site/src/*.test.js",
+    "test:claims": "node --test site/src/claims.test.js",
     "build": "cargo build --release && npm run build:site && mkdir -p dist/bin && cp target/release/cooldown-registry-proxy dist/bin/",
     "build:site": "vite build site --outDir ../dist/site --emptyOutDir"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@playwright/test": "^1.58.2",
     "vite": "^7.1.3"
   }
 }
-

@@ -11,4 +11,6 @@ test('Static Web Apps applies immutable caching and browser hardening', () => {
   assert.equal(config.globalHeaders['X-Frame-Options'], 'DENY')
   assert.match(config.globalHeaders['Permissions-Policy'], /camera=\(\)/)
   assert.match(config.globalHeaders['Strict-Transport-Security'], /max-age=31536000/)
+  assert.equal(config.responseOverrides['404'].rewrite, '/404.html')
+  assert.equal(config.responseOverrides['404'].statusCode, 404)
 })

@@ -33,10 +33,22 @@
       }
     },
     {
+      "route": "/demo/*",
+      "headers": {
+        "Cache-Control": "no-cache, no-store, must-revalidate"
+      }
+    },
+    {
       "route": "/terms/*",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }
     }
-  ]
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html",
+      "statusCode": 404
+    }
+  }
 }

@@ -1,0 +1,11 @@
+{
+  "exclusions": [
+    {
+      "ecosystem": "npm",
+      "package": "signal-router",
+      "version": "4.8.0",
+      "expires": "2099-01-01T00:00:00Z",
+      "reason": "Sample emergency patch"
+    }
+  ]
+}

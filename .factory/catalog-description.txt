@@ -1,0 +1,1 @@
+Block new npm, PyPI, and Cargo packages until their release cooldown ends.

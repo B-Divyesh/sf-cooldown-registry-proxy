@@ -1,27 +1,40 @@
-# cooldown-registry-proxy
+# Cooldown Registry Proxy
 
-Put one enforceable waiting period between public package registries and every developer or CI runner. `cooldown-registry-proxy` is a self-hosted Rust binary for teams that want new npm, PyPI, and crates.io releases to age before installation—without trusting per-developer settings or installing a TLS interception certificate.
+Block new packages until their cooldown ends.
 
-It filters registry metadata, re-checks direct artifact requests, caches immutable package files, supports time-limited emergency exclusions, consumes a simple advisory blocklist feed, and records every refusal as JSONL. It does not host private packages, authenticate users, scan code, or claim to replace a full artifact repository.
+Cooldown Registry Proxy is for platform and security teams. It applies one npm,
+PyPI, and Cargo cooldown across laptops and CI. The Rust binary runs on your
+network. It does not need a browser extension or a TLS interception certificate.
+
+The proxy checks metadata and package downloads. It can record refused requests
+to a JSONL file. It does not host private packages, authenticate users, or scan
+package code.
 
 ## Install
 
-Build the single binary with Rust 1.85 or newer:
+Build with Rust 1.85 or newer.
 
 ```sh
 cargo build --release
 install -m 0755 target/release/cooldown-registry-proxy /usr/local/bin/
 ```
 
-Or build and run the container:
+## Try the sample
+
+Run the bundled sample from any directory:
 
 ```sh
-docker compose up --build
+cooldown-registry-proxy demo
 ```
 
-## Usage
+The command creates a new temporary workspace. It copies and validates bundled
+policy fixtures there. It does not read an existing cache, configuration, or
+audit log. See [`.factory/demo.md`](.factory/demo.md) for browser and CLI demo
+details.
 
-Start a seven-day policy on port 8787:
+## Run the proxy
+
+Start a seven-day cooldown on port 8787:
 
 ```sh
 cooldown-registry-proxy serve \
@@ -34,7 +47,8 @@ cooldown-registry-proxy serve \
   --audit-log /var/log/cooldown-refusals.jsonl
 ```
 
-The process is intentionally non-interactive and exits non-zero for invalid configuration. Add `--json` for machine-readable startup and validation output. `cooldown-registry-proxy --help` documents every command.
+Use a trusted private network for HTTP. Put TLS at your own ingress for other
+networks.
 
 ### npm
 
@@ -43,17 +57,16 @@ npm config set registry http://registry.internal:8787/npm/
 npm install
 ```
 
-### pip / uv
+### pip and uv
 
 ```sh
 pip install --index-url http://registry.internal:8787/pypi/simple/ PACKAGE
-# or: UV_INDEX_URL=http://registry.internal:8787/pypi/simple/ uv sync
+UV_INDEX_URL=http://registry.internal:8787/pypi/simple/ uv sync
 ```
 
 ### Cargo
 
 ```toml
-# .cargo/config.toml
 [source.crates-io]
 replace-with = "cooldown"
 
@@ -61,73 +74,37 @@ replace-with = "cooldown"
 registry = "sparse+http://registry.internal:8787/cargo/"
 ```
 
-HTTP is suitable only on a trusted private network. Put the binary behind your existing TLS ingress for use across untrusted networks.
-
 ## Policy files
 
-Exclusions are explicit, version-specific, expire automatically, and require an operator reason:
-
-```json
-{
-  "exclusions": [
-    {
-      "ecosystem": "npm",
-      "package": "@acme/security-fix",
-      "version": "2.4.1",
-      "expires": "2026-09-03T12:00:00Z",
-      "reason": "CVE-2026-1234 remediation approved by SEC-418"
-    }
-  ]
-}
-```
-
-Advisory files and remote `--advisory-url` feeds share one deliberately small schema. A hard block always wins over an exclusion:
-
-```json
-{
-  "blocked": [
-    {
-      "ecosystem": "pypi",
-      "package": "example-package",
-      "version": "1.2.0",
-      "id": "MAL-2026-0042",
-      "reason": "Credential stealer"
-    }
-  ]
-}
-```
-
-Use `cooldown-registry-proxy validate --exclusions ... --advisories ... --json` in CI before deploying a policy change. Multiple `--advisory-url` options may point at internally curated OSV/GitHub Advisory exports; feeds refresh without a restart.
-
-## Response behavior
-
-- Registry metadata omits cooldown-blocked versions and logs each decision.
-- Direct downloads return `404` for cooldown blocks and `451` for advisory hard blocks, with a JSON explanation and request ID.
-- Upstream errors use a stale cached response when one exists. `--offline` serves cache only and returns `503` with a clear cache-miss error otherwise.
-- `/healthz` is a liveness endpoint; `/readyz` verifies the cache directory and loaded policy.
-
-## Development and verification
+Exclusions require a package version, expiry, and reason. Advisory blocks use
+the same package coordinates and include an ID and reason.
 
 ```sh
-cargo test
-cargo clippy --all-targets -- -D warnings
-cargo build --release
-
-npm install
-npm test
-npm run build        # binary + site; output under dist/
-npm run build:site   # static site only; output under dist/site/
+cooldown-registry-proxy validate \
+  --exclusions examples/demo/exclusions.json \
+  --advisories examples/demo/advisories.json \
+  --json
 ```
 
-The integration suite uses local mock registries and does not depend on public package services. Package readiness can be checked with `cargo package --allow-dirty` (the factory owns publishing credentials; this repository does not publish automatically).
+## Test, build, and deploy
 
-## Deployment
+```sh
+npm ci
+npm test
+npm run test:claims
+npm run build
+cargo package --allow-dirty
+```
 
-See [`docker-compose.yml`](docker-compose.yml) for a persistent-cache deployment and [`examples/`](examples/) for policy templates. Terminate TLS and apply network access control at your ingress. The static documentation site deploys from `dist/site` to <https://cooldown-registry-proxy.sociobot.in>.
+`npm run build` writes the binary to `dist/bin/` and the static documentation
+site to `dist/site/`. The factory deploys `dist/site/`; it owns deployment and
+publishing credentials. Do not publish from this repository.
 
-## Security and privacy
+## Privacy and security
 
-The proxy has no telemetry and receives no package-manager credentials by design. Treat registry URLs, package names, audit logs, and cache contents as operationally sensitive. See [`SECURITY.md`](SECURITY.md) for reporting and threat-model boundaries.
+The documentation site has no analytics or third-party runtime scripts. Your
+proxy cache and refusal log can contain package names, so protect them on your
+host. Read [`SECURITY.md`](SECURITY.md) before reporting a vulnerability.
 
 ## License
 

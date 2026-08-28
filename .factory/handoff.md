@@ -1,64 +1,76 @@
-# Handoff — adversarial first-read review 1
+# Handoff — perfection-loop round 1 repair
 
 Date: 2026-08-28
 
-Work order: cooldown-registry-proxy-review-1
+Work order: `cooldown-registry-proxy-polish-1`
 
-Reviewed commit: e8db3ea53f3e8634c4d391a87b5af391d506e73d
+Base reviewed: `a583a174cfcb1a22d12d3f986733d7a8017b9d89`
 
-Verdict: FAIL
+Repair commit: pending final commit
 
-## What was done
+## Delivered
 
-- Reviewed the live site cold in fresh Chromium contexts at 390 × 844 and
-  1440 × 900.
-- Recorded what the first screen communicates about the job, intended user,
-  and first action.
-- Inventoried and counted every landing-page and README sentence; flagged long
-  copy, jargon, metaphors, banned wording, inconsistent terms, unclear
-  headings, and inaccurate controls.
-- Exercised the policy widget, network behavior, storage behavior, offline
-  reload, direct /demo load, unknown routes, browser back/focus, metadata, all
-  rendered links, legal pages, and mobile accessibility.
-- Checked .factory/claims.json and .factory/demo.md; both are absent.
-- Cloned the requested base commit to a fresh temporary directory, ran all
-  available tests/builds, and invoked both possible CLI demo forms from a fresh
-  temporary directory.
-- Wrote the full evidence and severity-ordered findings in
-  .factory/review-1.md.
+- Rewrote the first screen in plain language for platform and security teams.
+  It now has a one-click **Try it with sample data** action, an immediate
+  outcome, and privacy/offline/price facts.
+- Added `/demo/` and `?demo=1` entry. The sample has a persistent isolation
+  banner, reset, start-real link, three seeded package decisions, a
+  `demo:`-prefixed storage key, and no license or billing access.
+- Added `cooldown-registry-proxy demo`. It creates a new temporary workspace,
+  copies bundled policy fixtures, validates them with the binary, and prints
+  the path. Fixtures live in `examples/demo/`.
+- Added a self-hosted terminal-recording still, a text equivalent, and
+  `.factory/demo.md`.
+- Added `.factory/claims.json` with six tagged claim tests, including browser
+  isolation and offline reload checks.
+- Replaced the dead paid checkout with an honest free, MIT source path. The
+  optional paid offer was removed because its checkout route was not provisioned.
+- Added real Demo, legal, social metadata, touch icon, sitemap route, designed
+  404 configuration, consistent navigation/footer, focus-on-load announcement,
+  mobile stacking, and a three-step request path.
+- Preserved the dark topographic cartography identity. Social/touch crops and
+  the terminal SVG are recorded in `.factory/design.md`.
 
-No product code was changed.
+## Verification evidence
 
-## Verification results
+Run from this repair tree:
 
-- npm test: PASS — 6 Rust tests and 6 Node site tests.
-- npm install followed by npm run build: PASS — dist/bin and dist/site
-  produced.
-- Factory verify-url.sh against live Home: PASS — title/lang/main/alt/console
-  baseline, 717 ms observed load.
-- Playwright axe-core scan at 390 px: PASS — zero violations on Home, Privacy,
-  and Terms.
-- Live widget network interception: PASS — zero requests during slider/outage
-  interaction.
-- Offline reload after first visit: PASS — Home and all three sample rows
-  remained available.
-- Claims contract: BLOCKING FAIL — no claims manifest, no listed commands, and
-  no @claim tests.
-- Web/CLI demo contract: BLOCKING FAIL — no /demo, banner, reset, start-real
-  action, isolated namespace, CLI demo, recording, or demo documentation.
-- Routing: BLOCKING FAIL — /demo and unknown routes show the generic Azure 404.
-- Link crawl: BLOCKING FAIL — Buy Operator Pack returns HTTP 404; all other
-  rendered links/fragments passed.
-- First read: BLOCKING FAIL — intended user and first evaluation action are not
-  clear from the first screen.
+```sh
+npm ci
+npm test
+npm run test:claims
+npm run build
+npx playwright test --reporter=list
+cargo package --allow-dirty
+```
 
-## Known gaps and next steps
+Results on 2026-08-28:
 
-The five blocking findings and all exact fixes are in .factory/review-1.md.
-Repair work should start with first-screen clarity, the isolated web and CLI
-demo, the claims registry/tests, custom routing/404, and the checkout endpoint.
-Then address metadata, focus/navigation, limitations/privacy placement,
-version-link accuracy, and the copy findings before repeating this review.
+- `npm test`: PASS — 6 Rust tests and 11 Node tests.
+- Every command listed in `.factory/claims.json`: PASS. The browser claims run
+  against the built static site; offline reload is verified after service-worker
+  control.
+- `npm run build`: PASS — `dist/bin/cooldown-registry-proxy` and `dist/site/`.
+  Initial JavaScript is 5.29 kB raw / 2.40 kB gzip; CSS is 15.88 kB raw / 4.17
+  kB gzip; hero artwork is below the 300 kB budget.
+- `npx playwright test --reporter=list`: PASS — 8 tests. Axe reported zero
+  serious or critical WCAG 2 A/AA violations on Home, Demo, Privacy, and Terms.
+  The suite verifies title/lang/main/h1, visible mobile first action, route
+  heading focus, demo reset/namespace/no-third-party requests, and offline demo
+  reload.
+- `cargo package --allow-dirty`: PASS — packaged and verified
+  `cooldown-registry-proxy v0.1.0`.
 
-The temporary browser and clean-clone evidence remains under /tmp for this
-container only and is not part of the commit.
+## Deployment and release
+
+The static deploy artifact is `dist/site/`. The work order retains the original
+static deployment class. The factory owns deployment credentials and publishes
+this directory. The Rust publish-ready check is `cargo package --allow-dirty`;
+do not publish from this repository.
+
+## Known gaps
+
+None blocking. The product is intentionally free in this repair because the
+reviewed paid checkout returned 404; a paid offer should only return after the
+factory registers a working Sociobot product and adds its own sandbox claim
+coverage.

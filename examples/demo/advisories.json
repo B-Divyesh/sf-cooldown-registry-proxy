@@ -1,0 +1,11 @@
+{
+  "blocked": [
+    {
+      "ecosystem": "cargo",
+      "package": "vault-door",
+      "version": "0.9.6",
+      "id": "MAL-2026-041",
+      "reason": "Sample malware block"
+    }
+  ]
+}

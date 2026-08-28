@@ -55,6 +55,7 @@ h2 { margin-bottom: 18px; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.0
 h3 { margin-bottom: 10px; font-size: 1.25rem; line-height: 1.25; }
 .lede { max-width: 630px; margin-bottom: 32px; color: var(--paper-muted); font-size: 1.18rem; line-height: 1.55; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.action-note { flex-basis: 100%; color: var(--paper-muted); font-size: 14px; }
 .button { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 12px 20px; border: 1px solid transparent; text-decoration: none; font-weight: 700; }
 .button--primary { color: var(--signal-ink); background: var(--signal); box-shadow: 4px 4px 0 #983724; }
 .button--primary:hover { background: #ff8064; transform: translate(-1px, -1px); box-shadow: 5px 5px 0 #983724; }
@@ -111,7 +112,7 @@ output { color: var(--amber); font-variant-numeric: tabular-nums; text-align: ri
 .demo-note { margin: 0; padding: 18px 28px; color: var(--paper-muted); background: rgba(7, 24, 20, .7); font-size: 14px; }
 .demo-note b { color: var(--paper); }
 
-.route { counter-reset: route; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin: 0; padding: 0; list-style: none; background: var(--line); border: 1px solid var(--line); }
+.route { counter-reset: route; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 0; padding: 0; list-style: none; background: var(--line); border: 1px solid var(--line); }
 .route li { position: relative; min-height: 270px; padding: 28px 24px; background: var(--ink); }
 .route li:not(:last-child)::after { content: "→"; position: absolute; top: 32px; right: -9px; z-index: 2; color: var(--signal); background: var(--ink); font: 18px var(--mono); }
 .route__number { display: block; margin-bottom: 64px; color: var(--signal); font: 12px var(--mono); }
@@ -156,6 +157,21 @@ footer nav { justify-content: flex-end; }
 .legal-main h2 { margin-top: 48px; font-size: 1.5rem; letter-spacing: -.02em; }
 .legal-main p, .legal-main li { color: var(--paper-muted); }
 .legal-main strong { color: var(--paper); }
+.demo-page { width: min(980px, calc(100% - 48px)); min-height: calc(100vh - 260px); margin: 0 auto; padding: 64px 0 104px; }
+.demo-page .section-heading { margin-top: 52px; }
+.demo-banner { position: sticky; top: 12px; z-index: 4; display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 10px 12px 10px 16px; border: 1px solid var(--amber); border-left: 3px solid var(--signal); color: var(--paper); background: rgba(13, 36, 30, .97); box-shadow: 8px 8px 0 var(--ink); font: 13px/1.35 var(--mono); }
+.demo-banner b { color: var(--amber); }
+.demo-banner div { display: flex; gap: 8px; align-items: center; }
+.demo-banner button, .demo-banner a { min-height: 44px; display: inline-flex; align-items: center; padding: 0 12px; border: 1px solid var(--paper-muted); color: var(--paper); background: transparent; font: 700 12px var(--mono); cursor: pointer; }
+.demo-banner a { border-color: var(--signal); color: var(--signal); }
+.demo-cli { margin-top: 48px; padding: 28px; border: 1px solid var(--line); border-left: 3px solid var(--moss); background: var(--terrain); }
+.demo-cli h2 { margin-top: 0; font-size: 1.4rem; }
+.demo-cli p { color: var(--paper-muted); }
+.demo-cli pre { margin: 16px 0 0; padding: 16px; overflow: auto; color: var(--paper); background: var(--ink); font: 14px var(--mono); }
+.not-found { width: min(760px, calc(100% - 48px)); min-height: calc(100vh - 260px); margin: 0 auto; padding: 120px 0; }
+.not-found h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); }
+.not-found > p:not(.eyebrow) { color: var(--paper-muted); }
+.not-found > div { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
 
 @keyframes map-enter { from { transform: translateY(8px); } to { transform: translateY(0); } }
 
@@ -180,6 +196,7 @@ footer nav { justify-content: flex-end; }
   h1 { font-size: clamp(2.6rem, 13.5vw, 4rem); }
   .hero { gap: 40px; padding: 48px 0 64px; }
   .hero__facts { grid-template-columns: 1fr; }
+  .hero__facts div { padding-bottom: 12px; }
   .hero__map { width: calc(100% + 32px); margin: 0 -16px; }
   .hero__map figcaption { position: static; }
   .trust-strip { display: grid; grid-template-columns: 1fr 1fr; }
@@ -198,6 +215,11 @@ footer nav { justify-content: flex-end; }
   #restore-license > div { grid-template-columns: 1fr; gap: 8px; }
   .update-notice { right: 16px; bottom: 16px; }
   footer nav { gap: 18px; }
+  .demo-page { width: min(100% - 32px, 980px); padding: 28px 0 72px; }
+  .demo-banner { position: static; align-items: flex-start; flex-direction: column; }
+  .demo-banner div { width: 100%; }
+  .demo-banner button, .demo-banner a { flex: 1; justify-content: center; }
+  .not-found { width: min(100% - 32px, 760px); padding: 80px 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
