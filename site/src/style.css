@@ -107,7 +107,7 @@ output { color: var(--amber); font-variant-numeric: tabular-nums; text-align: ri
 .release__identity span, .release__result span { color: var(--paper-muted); font-size: 13px; }
 .release__result { padding-left: 20px; border-left: 1px solid var(--line); }
 .release--allowed { color: var(--moss); }
-.release--cooldown { color: var(--amber); }
+.release--cooldown, .release--quarantine { color: var(--amber); }
 .release--blocked { color: var(--danger); }
 .release--offline { color: var(--paper-muted); }
 .demo-note { margin: 0; padding: 18px 28px; color: var(--paper-muted); background: rgba(7, 24, 20, .7); font-size: 14px; }

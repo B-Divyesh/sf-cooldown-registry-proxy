@@ -50,7 +50,7 @@ test('@claim:demo-isolation demo preserves real data, resets its own key, and di
   await page.locator('footer').scrollIntoViewIfNeeded()
   await expect(page.locator('.demo-banner')).toBeVisible()
   await page.getByRole('link', { name: 'Start for real' }).click()
-  await expect(page).toHaveURL('http://127.0.0.1:4173/')
+  expect(new URL(page.url()).pathname).toBe('/')
   expect(await page.evaluate(() => localStorage.getItem('demo:cooldown-registry-proxy:policy'))).toBeNull()
   expect(await page.evaluate(() => localStorage.getItem('real:operator-settings'))).toBe('keep-me')
 })
@@ -80,12 +80,13 @@ test('@claim:site-privacy complete landing and demo flow makes only same-origin 
   const requests = []
   page.on('request', (request) => requests.push(request.url()))
   await page.goto('/')
+  const origin = new URL(page.url()).origin
   await page.getByRole('link', { name: 'Try it with sample data' }).first().click()
   await page.getByLabel('Minimum release age').fill('14')
   await page.getByLabel('Simulate upstream outage').check()
   await page.getByRole('button', { name: 'Reset demo' }).click()
   expect(requests.length).toBeGreaterThan(0)
-  expect(requests.every((url) => new URL(url).origin === 'http://127.0.0.1:4173')).toBeTruthy()
+  expect(requests.every((url) => new URL(url).origin === origin)).toBeTruthy()
 })
 
 test('mobile first screen shows the job, user, action, outcome, and all three facts', async ({ page }) => {
@@ -113,7 +114,7 @@ test('direct routes, back navigation, heading focus, and the designed 404 work',
   await expect(page).toHaveURL(/\/privacy\/$/)
   await expect(page.locator('h1')).toBeFocused()
   await page.goBack()
-  await expect(page).toHaveURL('http://127.0.0.1:4173/')
+  expect(new URL(page.url()).pathname).toBe('/')
   await expect(page.locator('h1')).toBeFocused()
   expect(await page.evaluate(() => scrollY)).toBeGreaterThan(400)
 

@@ -68,6 +68,8 @@ test('reviewed dead paid and versioned-download promises are absent', () => {
     'site/404.html',
     'README.md'
   ].map(read).join('\n')
-  assert.doesNotMatch(publicCopy, /Buy Operator Pack|checkout|Get v0\.1\.0 on GitHub|one-time \$49/i)
+  assert.doesNotMatch(publicCopy, /Buy Operator Pack|checkout|Get v0\.1\.0 on GitHub|one-time \$49|Five-minute deployment|Network-level package quarantine/i)
+  assert.doesNotMatch(publicCopy, /policy active|registry\.internal · policy/i)
+  assert.match(read('site/index.html'), /Example: 7-day cooldown/)
   assert.equal(existsSync(new URL('site/public/operator-pack.md', root)), false)
 })

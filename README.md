@@ -42,7 +42,7 @@ steps.
 
 ## Run the proxy
 
-Start a seven-day cooldown on port 8787:
+Example proxy command:
 
 ```sh
 cooldown-registry-proxy serve \
