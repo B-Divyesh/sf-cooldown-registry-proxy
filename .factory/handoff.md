@@ -74,9 +74,16 @@ static deployment class. The factory owns deployment credentials and publishes
 this directory. The Rust publish-ready check is `cargo package --allow-dirty`;
 do not publish from this repository.
 
+`main` was pushed to `origin` at
+`aa56bac822701055d5c0b34d1833c4906905cf49`. No deploy command, workflow, or
+credential is present in this repository. At the final check, the existing live
+`/demo/` endpoint still returned 404, so the factory static deployment remains
+the required external follow-up; the repository-side `dist/site/` artifact and
+Static Web Apps routing configuration are ready.
+
 ## Known gaps
 
-None blocking. The product is intentionally free in this repair because the
+No repository-side product blocker remains. The product is intentionally free in this repair because the
 reviewed paid checkout returned 404; a paid offer should only return after the
 factory registers a working Sociobot product and adds its own sandbox claim
 coverage.
