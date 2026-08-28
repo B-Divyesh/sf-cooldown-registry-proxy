@@ -79,8 +79,8 @@ Deployment used the work-order command and unchanged static artifact class:
 /opt/fleet/lib/deploy-static.sh cooldown-registry-proxy dist/site
 ```
 
-Azure Static Web Apps deployment
-`cb29e7ce-91d1-4192-9d55-5cd58b96cd15` succeeded. The custom domain returned
+Final Azure Static Web Apps deployment
+`95bcc4b3-5059-42a5-8abd-37ec745866c8` succeeded. The custom domain returned
 HTTPS 200.
 
 Cold live checks after deployment:

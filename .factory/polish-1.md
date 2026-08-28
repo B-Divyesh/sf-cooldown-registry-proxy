@@ -139,7 +139,7 @@ Evidence abbreviations:
 
 ## Final live evidence
 
-- Deployment `cb29e7ce-91d1-4192-9d55-5cd58b96cd15` succeeded on Azure Static
+- Final deployment `95bcc4b3-5059-42a5-8abd-37ec745866c8` succeeded on Azure Static
   Web Apps and the custom domain returned HTTPS 200.
 - Cold live Playwright: 13/13, including four axe route scans and the 404 scan
   with zero serious or critical violations.
