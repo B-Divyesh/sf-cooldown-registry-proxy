@@ -168,6 +168,36 @@ test('direct routes, back navigation, heading focus, and the designed 404 work',
   expect(results.violations.filter((item) => ['critical', 'serious'].includes(item.impact))).toEqual([])
 })
 
+test('every route uses the same marked header, navigation, and accessible names', async ({ page }) => {
+  const shellRoutes = ['/', '/demo/', '/privacy/', '/terms/', '/definitely-not-a-route']
+  const expectedPaths = [
+    'M4 20C4 8 11 4 20 4s16 4 16 16-7 16-16 16S4 32 4 20Z',
+    'M10 20c0-7 4-10 10-10s10 3 10 10-4 10-10 10-10-3-10-10Z',
+    'M2 22h36'
+  ]
+  const expectedNavigation = [
+    { href: '/demo/', name: 'Demo' },
+    { href: '/#how', name: 'How it works' },
+    { href: '/#install', name: 'Setup' },
+    { href: 'https://github.com/B-Divyesh/sf-cooldown-registry-proxy', name: 'View source on GitHub' }
+  ]
+
+  for (const path of shellRoutes) {
+    await page.goto(path)
+    const brand = page.locator('header .brand')
+    await expect(brand).toHaveAttribute('aria-label', 'Cooldown Proxy home')
+    await expect(brand.locator('svg[aria-hidden="true"]')).toHaveCount(1)
+    await expect(brand.locator('span')).toHaveText('cooldown/proxy')
+    expect(await brand.locator('path').evaluateAll((paths) => paths.map((item) => item.getAttribute('d')))).toEqual(expectedPaths)
+    const navigation = await page.locator('header nav a').evaluateAll((links) => links.map((link) => {
+      const copy = link.cloneNode(true)
+      copy.querySelectorAll('[aria-hidden="true"]').forEach((item) => item.remove())
+      return { href: link.getAttribute('href'), name: copy.textContent.trim().replace(/\s+/g, ' ') }
+    }))
+    expect(navigation).toEqual(expectedNavigation)
+  }
+})
+
 test('every internal and legal link resolves and external links name GitHub', async ({ page, request }) => {
   const hrefs = new Set()
   for (const [path] of routes) {
@@ -199,8 +229,8 @@ test('keyboard controls expose visible focus without traps', async ({ page }) =>
   await expect(page.getByLabel('Minimum release age')).toHaveValue('8')
 })
 
-test('capture polish round three evidence at mobile and desktop sizes', async ({ page }) => {
-  const evidence = '.factory/evidence/polish-3'
+test('capture polish round four evidence at mobile and desktop sizes', async ({ page }) => {
+  const evidence = '.factory/evidence/polish-4'
   mkdirSync(evidence, { recursive: true })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('/')

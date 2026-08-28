@@ -71,6 +71,40 @@ test('all public routes share legal links, factory credit, and build ID', () => 
   }
 })
 
+test('all public routes share the marked header and result-naming source action', () => {
+  const paths = ['site/index.html', 'site/demo/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'site/404.html']
+  const expectedIcon = '<svg aria-hidden="true" viewBox="0 0 40 40"><path d="M4 20C4 8 11 4 20 4s16 4 16 16-7 16-16 16S4 32 4 20Z"/><path d="M10 20c0-7 4-10 10-10s10 3 10 10-4 10-10 10-10-3-10-10Z"/><path d="M2 22h36"/></svg>'
+  for (const path of paths) {
+    const header = read(path).match(/<header class="site-header">([\s\S]*?)<\/header>/)?.[1]
+    assert.ok(header, `${path} should have the shared header`)
+    assert.match(header, /<a class="brand" href="\/" aria-label="Cooldown Proxy home">/)
+    assert.ok(header.includes(expectedIcon), `${path} should use the contour brand mark`)
+    assert.ok(header.includes('<span>cooldown<em>/</em>proxy</span>'))
+    assert.match(header, /<a href="\/demo\/"(?: aria-current="page")?>Demo<\/a>/)
+    assert.match(header, /<a href="\/#how">How it works<\/a>/)
+    assert.match(header, /<a href="\/#install">Setup<\/a>/)
+    assert.match(header, />View source on GitHub <span aria-hidden="true">↗<\/span><\/a>/)
+    assert.doesNotMatch(header, />Source on GitHub/)
+  }
+})
+
+test('GitHub links with fragments target a real README heading', () => {
+  const markdown = read('README.md')
+  const headingIds = new Set([...markdown.matchAll(/^#{1,6}\s+(.+)$/gm)].map(([, heading]) => heading
+    .toLowerCase()
+    .replace(/<[^>]+>/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .trim()
+    .replace(/\s+/g, '-')))
+  const publicPages = ['site/index.html', 'site/demo/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'site/404.html']
+  const fragmentLinks = publicPages.flatMap((path) => [...read(path).matchAll(/href="(https:\/\/github\.com\/B-Divyesh\/sf-cooldown-registry-proxy#[^"]+)"/g)].map((match) => match[1]))
+  assert.ok(fragmentLinks.length > 0, 'at least one repository fragment should be checked')
+  for (const href of fragmentLinks) {
+    const fragment = decodeURIComponent(new URL(href).hash.slice(1))
+    assert.ok(headingIds.has(fragment), `${href} should target a README heading`)
+  }
+})
+
 test('reviewed dead paid and versioned-download promises are absent', () => {
   const publicCopy = [
     'site/index.html',

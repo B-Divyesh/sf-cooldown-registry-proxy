@@ -1,4 +1,4 @@
-# Copy audit — polish round 3
+# Copy audit — polish round 4
 
 Date: 2026-08-28
 
@@ -42,7 +42,9 @@ result has 11 words.
 
 Controls and headings use direct terms: “Try it with sample data,” “View setup
 commands,” “How requests are checked,” “Configure each package manager,” and
-“What the proxy does not do.” No public sentence exceeds 22 words. The test
+“What the proxy does not do.” Every source action now says “View source on
+GitHub.” The setup link targets the matching “Run the proxy” README heading.
+No public sentence exceeds 22 words. The test
 `public copy uses plain words and keeps every sentence within 22 words` checks
 the landing page and README on every `npm test` run.
 
