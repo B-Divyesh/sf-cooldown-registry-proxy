@@ -1,102 +1,51 @@
-# Handoff — polish round 3
+# Handoff — adversarial review 4
 
 Date: 2026-08-28
 
-Work order: `cooldown-registry-proxy-polish-3`
+Work order: `cooldown-registry-proxy-review-4`
+
+Repository base reviewed: `5e4f5d9fec6ea7bd90354e19134f67087cf25dae`
 
 Live URL: <https://cooldown-registry-proxy.sociobot.in>
 
-Implementation commit: `622d892`
-
-Verified evidence commit: `bf2c07f`
-
-Deployment: `7e2fac8f-8709-44e4-bd8f-53934365eede`
-
 ## Delivered
 
-- Added a compact, live decision strip so the one-click browser demo shows its
-  cooldown, allowed, and advisory outcomes inside the first mobile and desktop
-  viewport.
-- Kept the quarantine-contour visual identity while fitting all three hero
-  privacy/offline/price facts inside 390×844 and 1440×900 first screens.
-- Expanded production refusal evidence to npm, PyPI, and Cargo metadata and
-  direct-download paths for cooldown and advisory decisions. Each of 12
-  blocked-version events is matched to its response request ID and one JSONL row.
-- Added a Linux test guard that records file opens, DNS, and sockets. The CLI
-  demo test denies current-directory access and non-loopback traffic. The
-  production outbound test permits only the configured private fixture and
-  includes the remote advisory route.
-- Instrumented browser Storage API calls. Demo entry, change, reset, and exit
-  read or mutate only `demo:cooldown-registry-proxy:policy` while preserving a
-  real-data sentinel.
-- Added claim tests for terminal-recording parity and package names in refusal
-  records. Removed the unproved public credential-ownership statement.
-- Added `X-Request-Id` to proxy responses so production audit rows can be tied
-  to metadata and direct-download requests.
-- Updated `.factory/claims.json`, `.factory/demo.md`, `.factory/design.md`, the
-  copy audit, and the verb-first catalog description.
+- Added `.factory/review-4.md` with a `FAIL` verdict, one blocking finding,
+  two minor findings, full landing/README copy inventories, all 24 claim
+  results, demo/privacy/structure evidence, and a direct recheck of every
+  earlier finding.
+- Reopened review-1 M3 because Privacy, Terms, and 404 omit the header SVG used
+  on Home and Demo.
+- Recorded the dead GitHub `#usage` fragment and the non-verb “Source on
+  GitHub” header action.
+- Did not modify product code.
 
-Every review-1, review-2, and review-3 finding is mapped in
-`.factory/polish-3.md`. No finding or TODO remains.
+## Verification performed
 
-## Verification
+- Fresh Chromium at 390 × 844 and 1440 × 900 before scrolling.
+- Live Playwright suite: 14/14 passed, including demo isolation, offline reload,
+  same-origin interception, axe scans, keyboard operation, route focus/back,
+  first-viewport bounds, and internal status crawl.
+- Every `.factory/claims.json` command: 24/24 passed individually from clean
+  clone `/tmp/cooldown-review4-clean.MCkUoD`.
+- Clean-clone `npm test`: 7 Rust tests and 33 Node tests passed.
+- Clean-clone `npm run build`: passed; `dist/bin` and `dist/site` were written.
+- CLI `demo` from `/tmp/cooldown-review4-demo.Jc8Hn1`: expected three decisions,
+  isolated workspace, and untouched invocation-directory sentinel.
+- Live `verify-url.sh`: 853 ms, no console errors, one h1, `lang=en`, main,
+  complete alt text, and named buttons.
+- Named live routes and assets returned 200; unknown route returned the designed
+  404. CSP and security headers were present.
+- Built Home HTML matched the live response by SHA-256.
 
-Fresh clone: `/tmp/cooldown-polish3-final.Ulho3b`.
+## Remaining work
 
-- Every one of the 24 `.factory/claims.json` commands passed separately and
-  selected exactly one tagged test.
-- `npm test`: passed 7 Rust tests and 33 Node tests in the final clean clone.
-- `cargo clippy --all-targets -- -D warnings`: passed.
-- `npm run build`: passed and wrote `dist/bin/cooldown-registry-proxy` plus
-  `dist/site/`.
-- `npm run test:browser -- --reporter=line`: 14/14 passed, including four route
-  axe scans, keyboard/focus, routing/404, mobile/desktop bounds, demo isolation,
-  same-origin privacy, and offline reload.
-- `cargo package --allow-dirty`: packaged and verified the crate.
-- Static budgets: JS 5.86 kB raw / 2.55 kB gzip; CSS 17.71 kB raw / 4.49 kB
-  gzip; hero WebP 141,096 bytes.
+1. Use the full Home/Demo brand markup on Privacy, Terms, and 404, then test
+   exact shared-header parity on every route.
+2. Change the setup link from `#usage` to `#run-the-proxy` and make the crawler
+   validate external fragments.
+3. Rename the header action to “View source on GitHub.”
 
-Cold live verification after deployment:
-
-- `verify-url.sh`: 856 ms load, no console errors, one h1, `lang=en`, one main,
-  no missing alt text, and no unnamed buttons.
-- Live Playwright: 14/14 passed. Axe reported zero serious or critical issues
-  on Home, Demo, Privacy, Terms, and the product 404.
-- Home facts ended at 675px on 390×844 and at most 854px on 1440×900.
-- Demo decisions ended at most 390px on 390×844 and 480px on 1440×900.
-- `/`, `/?demo=1`, `/demo`, `/demo/`, `/privacy`, `/privacy/`, `/terms`,
-  `/terms/`, `robots.txt`, `sitemap.xml`, and social/touch assets returned 200.
-  `/not-a-real-route` returned 404. The GitHub destination returned 200.
-- CSP, HSTS, frame denial, nosniff, Referrer-Policy, and Permissions-Policy
-  headers were present.
-- Local/live SHA-256 matched for home HTML and generated JS.
-- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100,
-  SEO 100; LCP 1.5 s, CLS 0, TBT 40 ms, Speed Index 1.3 s.
-
-Evidence is under `.factory/evidence/polish-3/`, including responsive screenshots,
-the live smoke report, and the Lighthouse JSON report.
-
-## Run and verify
-
-```sh
-npm ci
-npm test
-npm run test:claims
-npm run test:browser
-cargo clippy --all-targets -- -D warnings
-npm run build
-cargo package --allow-dirty
-```
-
-Run the isolated CLI sample with:
-
-```sh
-./dist/bin/cooldown-registry-proxy demo
-```
-
-Deploy the static artifact from `dist/site/` through the factory work order.
-
-## Known gaps and next steps
-
-None for the reviewed product contract. Registry operators still own TLS,
-network access, cache protection, and log retention as documented.
+The product remains buildable. Review acceptance is blocked until all three
+findings are fixed and reverified because the required verdict standard is zero
+findings.
