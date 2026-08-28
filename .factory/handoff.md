@@ -1,3 +1,42 @@
+# Handoff — adversarial review 2
+
+Date: 2026-08-28
+Work order: `cooldown-registry-proxy-review-2`
+Role: reviewer (no product-code changes)
+Live URL: <https://cooldown-registry-proxy.sociobot.in>
+
+This section supersedes the historical handoff below.
+
+## Done
+
+- Wrote `.factory/review-2.md` and committed this review/handoff only.
+- Ran fresh 390 px and desktop live first-read checks; full demo isolation,
+  offline reload, privacy interception, CLI demo in a temporary directory,
+  routes/metadata/404/link crawl, keyboard/axe suite, and prior-finding audit.
+- Ran `npm ci`, `npm test`, `npm run build`, every one of the 20 claim
+  commands separately, and the full live Playwright suite from clean clone
+  `/tmp/cooldown-review2-clean.fItiXV`.
+
+## Results
+
+Technical checks passed: 20/20 listed claims, 13/13 live Playwright tests,
+clean `npm test`, clean build, designed 404, offline demo reload, and
+same-origin browser demo flow. No product code was changed.
+
+The review verdict is **FAIL** because three public production statements are
+not covered by exact manifest claims: unqualified refusal records (F-2-1),
+`npm run build` output locations (F-2-2), and production cache/refusal output
+locations (F-2-3). See `.factory/review-2.md` for exact quotes and tests or
+rewrites required.
+
+## Next step
+
+Add the three scoped claim tests or narrow/remove the corresponding public
+claims, then rerun the clean-clone claim commands and live browser suite.
+
+---
+
+
 # Handoff — perfection-loop round 1
 
 Date: 2026-08-28
