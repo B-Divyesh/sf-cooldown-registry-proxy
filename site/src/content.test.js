@@ -13,6 +13,9 @@ test('claims manifest has one and only one tagged test for every claim', () => {
   for (const claim of claims) {
     assert.equal(typeof claim.claim, 'string')
     assert.match(claim.test, new RegExp(`@claim:${claim.id}`))
+    if (claim.test.startsWith('node ')) {
+      assert.equal(claim.test, `node --test --test-name-pattern=@claim:${claim.id} site/src/claims.test.js`)
+    }
     assert.equal(sources.split(`@claim:${claim.id}`).length - 1, 1)
   }
   const tags = [...sources.matchAll(/@claim:([a-z0-9-]+)/g)].map((match) => match[1])

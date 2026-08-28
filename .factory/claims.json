@@ -3,105 +3,105 @@
     "id": "cooldown-block",
     "claim": "Fresh packages stay blocked until their cooldown ends.",
     "where": "landing headline, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:cooldown-block",
+    "test": "node --test --test-name-pattern=@claim:cooldown-block site/src/claims.test.js",
     "sandbox": "CLI demo in a new temporary workspace; assert npm metadata omission and direct HTTP 404"
   },
   {
     "id": "registry-paths",
     "claim": "One proxy checks npm, PyPI, and Cargo registry paths.",
     "where": "landing first screen and request path, README, CLI demo",
-    "test": "npm run test:claims -- --test-name-pattern @claim:registry-paths",
+    "test": "node --test --test-name-pattern=@claim:registry-paths site/src/claims.test.js",
     "sandbox": "CLI demo against one private mock registry; assert all three ecosystem results"
   },
   {
     "id": "metadata-filter",
     "claim": "The proxy filters blocked versions from registry lists.",
     "where": "landing behavior strip and README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:metadata-filter",
+    "test": "node --test --test-name-pattern=@claim:metadata-filter site/src/claims.test.js",
     "sandbox": "CLI demo; compare allowed and blocked fixture visibility in npm, PyPI, and Cargo metadata"
   },
   {
     "id": "direct-downloads",
     "claim": "The proxy checks direct package downloads.",
     "where": "landing behavior strip and README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:direct-downloads",
+    "test": "node --test --test-name-pattern=@claim:direct-downloads site/src/claims.test.js",
     "sandbox": "CLI demo; assert direct npm 404, PyPI 200, and Cargo 451 responses"
   },
   {
     "id": "advisory-block",
     "claim": "An advisory block overrides an active exclusion.",
     "where": "demo sample and README policy files",
-    "test": "npm run test:claims -- --test-name-pattern @claim:advisory-block",
+    "test": "node --test --test-name-pattern=@claim:advisory-block site/src/claims.test.js",
     "sandbox": "CLI demo; bundled Cargo version appears in both files and returns HTTP 451"
   },
   {
     "id": "sample-decisions",
     "claim": "The sample shows one allowed release, one cooldown block, and one advisory block.",
     "where": "landing action note, final action, browser demo, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:sample-decisions",
+    "test": "node --test --test-name-pattern=@claim:sample-decisions site/src/claims.test.js",
     "sandbox": "CLI demo; assert the three ordered outcomes from bundled fixtures"
   },
   {
     "id": "refusal-jsonl",
     "claim": "Every blocked sample request adds a JSONL refusal record.",
     "where": "landing request path and behavior strip, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:refusal-jsonl",
+    "test": "node --test --test-name-pattern=@claim:refusal-jsonl site/src/claims.test.js",
     "sandbox": "CLI demo; parse all four JSONL rows and assert request IDs and refusal types"
   },
   {
     "id": "cli-demo-workspace",
     "claim": "The CLI demo runs real proxy paths in a new temporary workspace.",
     "where": "demo page, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:cli-demo-workspace",
+    "test": "node --test --test-name-pattern=@claim:cli-demo-workspace site/src/claims.test.js",
     "sandbox": "run cooldown-registry-proxy demo from a fresh process and inspect its workspace and report"
   },
   {
     "id": "cli-demo-isolation",
     "claim": "The CLI demo never reads or changes existing configuration, caches, or logs.",
     "where": "README, demo documentation",
-    "test": "npm run test:claims -- --test-name-pattern @claim:cli-demo-isolation",
+    "test": "node --test --test-name-pattern=@claim:cli-demo-isolation site/src/claims.test.js",
     "sandbox": "run the built binary from a directory with sentinel real data; assert it is untouched and outputs are elsewhere"
   },
   {
     "id": "local-demo-output",
     "claim": "The CLI demo keeps its policy, cache, report, and refusal log inside its temporary workspace.",
     "where": "demo page, README, privacy",
-    "test": "npm run test:claims -- --test-name-pattern @claim:local-demo-output",
+    "test": "node --test --test-name-pattern=@claim:local-demo-output site/src/claims.test.js",
     "sandbox": "CLI demo; resolve every output path relative to the unique workspace"
   },
   {
     "id": "configured-outbound",
     "claim": "The proxy contacts only registry and advisory URLs in its configuration.",
     "where": "privacy page, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:configured-outbound",
+    "test": "node --test --test-name-pattern=@claim:configured-outbound site/src/claims.test.js",
     "sandbox": "CLI demo with every configured upstream set to one private mock; assert the complete request path list"
   },
   {
     "id": "policy-files",
     "claim": "Exclusions require a package version, expiry, and reason; advisories override matching exclusions.",
     "where": "README policy files",
-    "test": "npm run test:claims -- --test-name-pattern @claim:policy-files",
+    "test": "node --test --test-name-pattern=@claim:policy-files site/src/claims.test.js",
     "sandbox": "CLI validate on bundled valid files and an invalid missing-reason file, then demo precedence result"
   },
   {
     "id": "unsupported-scope",
     "claim": "Private package hosting, user authentication, and code scanning are outside the product scope.",
     "where": "landing limitations, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:unsupported-scope",
+    "test": "node --test --test-name-pattern=@claim:unsupported-scope site/src/claims.test.js",
     "sandbox": "fresh CLI help output; assert only serve, validate, and demo surfaces and no claimed unsupported feature"
   },
   {
     "id": "binary-build",
     "claim": "Cargo builds one release executable.",
     "where": "README install",
-    "test": "npm run test:claims -- --test-name-pattern @claim:binary-build",
+    "test": "node --test --test-name-pattern=@claim:binary-build site/src/claims.test.js",
     "sandbox": "fresh release build; assert target/release/cooldown-registry-proxy is a file"
   },
   {
     "id": "mit-license",
     "claim": "The source is MIT licensed.",
     "where": "landing first-screen price fact, terms, README",
-    "test": "npm run test:claims -- --test-name-pattern @claim:mit-license",
+    "test": "node --test --test-name-pattern=@claim:mit-license site/src/claims.test.js",
     "sandbox": "fresh checkout; inspect LICENSE grant and Cargo license metadata"
   },
   {
@@ -136,7 +136,7 @@
     "id": "release-version",
     "claim": "The site build ID is v0.1.0.",
     "where": "shared footer",
-    "test": "npm run test:claims -- --test-name-pattern @claim:release-version",
+    "test": "node --test --test-name-pattern=@claim:release-version site/src/claims.test.js",
     "sandbox": "fresh checkout; compare footer build ID with Cargo package version"
   }
 ]
