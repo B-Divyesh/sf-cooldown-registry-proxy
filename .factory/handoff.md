@@ -6,7 +6,7 @@ Work order: `cooldown-registry-proxy-polish-1`
 
 Base reviewed: `a583a174cfcb1a22d12d3f986733d7a8017b9d89`
 
-Repair commit: pending final commit
+Repair commit: `8174fddb91f6d172869f7db71f163419af646736` (amended below only to record this identifier)
 
 ## Delivered
 
