@@ -43,10 +43,10 @@
   },
   {
     "id": "refusal-jsonl",
-    "claim": "Every blocked sample request adds a JSONL refusal record.",
+    "claim": "Every request blocked by cooldown or advisory adds a JSONL refusal record.",
     "where": "landing request path and behavior strip, README",
     "test": "node --test --test-name-pattern=@claim:refusal-jsonl site/src/claims.test.js",
-    "sandbox": "CLI demo; parse all four JSONL rows and assert request IDs and refusal types"
+    "sandbox": "real serve process with private npm fixture; create cooldown and advisory refusals and match each response request ID to one JSONL row"
   },
   {
     "id": "cli-demo-workspace",
@@ -96,6 +96,20 @@
     "where": "README install",
     "test": "node --test --test-name-pattern=@claim:binary-build site/src/claims.test.js",
     "sandbox": "fresh release build; assert target/release/cooldown-registry-proxy is a file"
+  },
+  {
+    "id": "build-dist",
+    "claim": "npm run build writes the binary to dist/bin and the static site to dist/site.",
+    "where": "README test, build, and deploy",
+    "test": "node --test --test-name-pattern=@claim:build-dist site/src/claims.test.js",
+    "sandbox": "new local git clone with no dependencies or build output; run npm ci and npm run build, then inspect both output paths"
+  },
+  {
+    "id": "configured-local-output",
+    "claim": "The production proxy writes cache and refusal files to the configured paths.",
+    "where": "README privacy and security, privacy route",
+    "test": "node --test --test-name-pattern=@claim:configured-local-output site/src/claims.test.js",
+    "sandbox": "real serve process with explicit temporary cache and audit paths; make allowed and blocked requests and assert no default data directory is created"
   },
   {
     "id": "mit-license",
