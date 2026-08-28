@@ -86,3 +86,38 @@ test('reviewed dead paid and versioned-download promises are absent', () => {
   assert.match(read('site/index.html'), /Example: 7-day cooldown/)
   assert.equal(existsSync(new URL('site/public/operator-pack.md', root)), false)
 })
+
+test('earlier unproved claims and inconsistent product terms stay absent', () => {
+  const publicCopy = [
+    'site/index.html',
+    'site/demo/index.html',
+    'site/privacy/index.html',
+    'site/terms/index.html',
+    'site/404.html',
+    'README.md'
+  ].map(read).join('\n')
+  for (const phrase of [
+    /New dependencies wait at the boundary/i,
+    /Releases cross only after policy clearance/i,
+    /One network choke point/i,
+    /No TLS interception/i,
+    /Immutable artifact cache/i,
+    /exactly what package managers see/i,
+    /No request leaves your browser/i,
+    /Direct URLs do not bypass the boundary/i,
+    /Keep your existing public registries/i,
+    /No wrapper or local plugin/i,
+    /refreshed advisory feeds/i,
+    /The proxy remains fully open and ungated/i,
+    /Make [“\"]too new[”\"] unreachable/i,
+    /small enough to understand/i,
+    /Dependency age is a policy, not a suggestion/i,
+    /Get v0\.1\.0 on GitHub/i,
+    /build and run the container/i,
+    /intentionally non-interactive/i,
+    /documents every command/i,
+    /stale cached response/i,
+    /serves cache only/i,
+    /receives no package-manager credentials/i
+  ]) assert.doesNotMatch(publicCopy, phrase)
+})

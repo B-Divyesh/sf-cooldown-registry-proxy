@@ -1,55 +1,100 @@
-# Handoff — adversarial review 3
+# Handoff — polish round 3
 
 Date: 2026-08-28
 
-Work order: `cooldown-registry-proxy-review-3`
-
-Reviewed base: `227950e0ddf64f93cda06b569f6c1c3f76dd8b80`
+Work order: `cooldown-registry-proxy-polish-3`
 
 Live URL: <https://cooldown-registry-proxy.sociobot.in>
 
+Implementation commit: `622d892`
+
+Deployment: `7e2fac8f-8709-44e4-bd8f-53934365eede`
+
 ## Delivered
 
-- Wrote `.factory/review-3.md` with a FAIL verdict, three blocking findings,
-  four minor findings, complete landing/README sentence counts, claim results,
-  full earlier-finding reconciliation, and concrete fixes.
-- Did not modify product code, site copy, tests, or deployment configuration.
+- Added a compact, live decision strip so the one-click browser demo shows its
+  cooldown, allowed, and advisory outcomes inside the first mobile and desktop
+  viewport.
+- Kept the quarantine-contour visual identity while fitting all three hero
+  privacy/offline/price facts inside 390×844 and 1440×900 first screens.
+- Expanded production refusal evidence to npm, PyPI, and Cargo metadata and
+  direct-download paths for cooldown and advisory decisions. Each of 12
+  blocked-version events is matched to its response request ID and one JSONL row.
+- Added a Linux test guard that records file opens, DNS, and sockets. The CLI
+  demo test denies current-directory access and non-loopback traffic. The
+  production outbound test permits only the configured private fixture and
+  includes the remote advisory route.
+- Instrumented browser Storage API calls. Demo entry, change, reset, and exit
+  read or mutate only `demo:cooldown-registry-proxy:policy` while preserving a
+  real-data sentinel.
+- Added claim tests for terminal-recording parity and package names in refusal
+  records. Removed the unproved public credential-ownership statement.
+- Added `X-Request-Id` to proxy responses so production audit rows can be tied
+  to metadata and direct-download requests.
+- Updated `.factory/claims.json`, `.factory/demo.md`, `.factory/design.md`, the
+  copy audit, and the verb-first catalog description.
 
-## Verification performed
+Every review-1, review-2, and review-3 finding is mapped in
+`.factory/polish-3.md`. No finding or TODO remains.
 
-- Opened the live site cold in fresh Chromium contexts at 390 × 844 and
-  1440 × 900.
-- Entered the demo in one click; tested Reset, Start for real, separate browser
-  storage, same-origin requests, offline reload, and sample values.
-- Ran the release CLI demo from a new temporary directory with a real-data
-  sentinel.
-- Created clean clone `/tmp/cooldown-review3-clean.ghnajR` and ran all 22
-  `.factory/claims.json` commands separately; every command exited 0.
-- Ran `npm test` (7 Rust + 30 Node tests) and `npm run build`; both passed.
-- Ran 12 live Playwright tests covering metadata, axe, routes, links, focus,
-  keyboard use, demo isolation, privacy, and offline behavior; all passed.
-- Ran `/opt/fleet/lib/verify-url.sh`; load was 567ms with no console errors,
-  one h1, `lang=en`, main, complete alt text, and named buttons.
-- Crawled all product links/fragments and GitHub destinations; all resolved.
-- Confirmed named routes/assets return 200 and unknown routes return the
-  product-designed 404.
-- Compared live HTML/JS/CSS hashes with the clean local build; all matched.
+## Verification
 
-## Findings left for repair
+Fresh clone: `/tmp/cooldown-polish3-clean.62GsPO`.
 
-- `F-3-1 / B2` BLOCKING: no decision result appears in the first mobile demo
-  viewport; only one appears in the desktop demo viewport.
-- `F-3-2 / F-2-1` BLOCKING: the universal refusal-log claim is tested with only
-  two npm direct requests.
-- `F-3-3 / UC-R23` BLOCKING: privacy tests do not intercept storage reads or
-  all CLI process network/file access.
-- `F-3-4` MINOR: desktop hero facts start below 900px.
-- `F-3-5` MINOR: terminal-recording parity is unlisted.
-- `F-3-6` MINOR: README package-name disclosure is unlisted.
-- `F-3-7 / UC-R22` MINOR: factory deployment/credential ownership is unlisted.
+- Every one of the 24 `.factory/claims.json` commands passed separately and
+  selected exactly one tagged test.
+- `npm test`: passed 7 Rust tests and 33 Node tests in the final clean clone.
+- `cargo clippy --all-targets -- -D warnings`: passed.
+- `npm run build`: passed and wrote `dist/bin/cooldown-registry-proxy` plus
+  `dist/site/`.
+- `npm run test:browser -- --reporter=line`: 14/14 passed, including four route
+  axe scans, keyboard/focus, routing/404, mobile/desktop bounds, demo isolation,
+  same-origin privacy, and offline reload.
+- `cargo package --allow-dirty`: packaged and verified the crate.
+- Static budgets: JS 5.86 kB raw / 2.55 kB gzip; CSS 17.71 kB raw / 4.49 kB
+  gzip; hero WebP 141,096 bytes.
 
-## Next step
+Cold live verification after deployment:
 
-Repair every finding in `.factory/review-3.md`, add the specified viewport and
-claim tests, deploy through the factory, and repeat the full review from fresh
-browser contexts and a new clean clone.
+- `verify-url.sh`: 856 ms load, no console errors, one h1, `lang=en`, one main,
+  no missing alt text, and no unnamed buttons.
+- Live Playwright: 14/14 passed. Axe reported zero serious or critical issues
+  on Home, Demo, Privacy, Terms, and the product 404.
+- Home facts ended at 675px on 390×844 and at most 854px on 1440×900.
+- Demo decisions ended at most 390px on 390×844 and 480px on 1440×900.
+- `/`, `/?demo=1`, `/demo`, `/demo/`, `/privacy`, `/privacy/`, `/terms`,
+  `/terms/`, `robots.txt`, `sitemap.xml`, and social/touch assets returned 200.
+  `/not-a-real-route` returned 404. The GitHub destination returned 200.
+- CSP, HSTS, frame denial, nosniff, Referrer-Policy, and Permissions-Policy
+  headers were present.
+- Local/live SHA-256 matched for home HTML and generated JS.
+- Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100,
+  SEO 100; LCP 1.5 s, CLS 0, TBT 40 ms, Speed Index 1.3 s.
+
+Evidence is under `.factory/evidence/polish-3/`, including responsive screenshots,
+the live smoke report, and the Lighthouse JSON report.
+
+## Run and verify
+
+```sh
+npm ci
+npm test
+npm run test:claims
+npm run test:browser
+cargo clippy --all-targets -- -D warnings
+npm run build
+cargo package --allow-dirty
+```
+
+Run the isolated CLI sample with:
+
+```sh
+./dist/bin/cooldown-registry-proxy demo
+```
+
+Deploy the static artifact from `dist/site/` through the factory work order.
+
+## Known gaps and next steps
+
+None for the reviewed product contract. Registry operators still own TLS,
+network access, cache protection, and log retention as documented.
