@@ -1,92 +1,43 @@
-# Handoff — adversarial review 2
-
-Date: 2026-08-28
-Work order: `cooldown-registry-proxy-review-2`
-Role: reviewer (no product-code changes)
-Live URL: <https://cooldown-registry-proxy.sociobot.in>
-
-This section supersedes the historical handoff below.
-
-## Done
-
-- Wrote `.factory/review-2.md` and committed this review/handoff only.
-- Ran fresh 390 px and desktop live first-read checks; full demo isolation,
-  offline reload, privacy interception, CLI demo in a temporary directory,
-  routes/metadata/404/link crawl, keyboard/axe suite, and prior-finding audit.
-- Ran `npm ci`, `npm test`, `npm run build`, every one of the 20 claim
-  commands separately, and the full live Playwright suite from clean clone
-  `/tmp/cooldown-review2-clean.fItiXV`.
-
-## Results
-
-Technical checks passed: 20/20 listed claims, 13/13 live Playwright tests,
-clean `npm test`, clean build, designed 404, offline demo reload, and
-same-origin browser demo flow. No product code was changed.
-
-The review verdict is **FAIL** because three public production statements are
-not covered by exact manifest claims: unqualified refusal records (F-2-1),
-`npm run build` output locations (F-2-2), and production cache/refusal output
-locations (F-2-3). See `.factory/review-2.md` for exact quotes and tests or
-rewrites required.
-
-## Next step
-
-Add the three scoped claim tests or narrow/remove the corresponding public
-claims, then rerun the clean-clone claim commands and live browser suite.
-
----
-
-
-# Handoff — perfection-loop round 1
+# Handoff — perfection-loop round 2
 
 Date: 2026-08-28
 
-Work order: `cooldown-registry-proxy-polish-1-all-findings`
+Work order: `cooldown-registry-proxy-polish-2`
 
-Reviewed candidate: `cb2f368dd11369fdb9fc99f22db046f67c252eb6`
+Reviewed candidate: `da745481f6f9982c2b5cec7a15d8faa8f39866e0`
 
-Adversarial report: `a583a174cfcb1a22d12d3f986733d7a8017b9d89`
+Review report: `487ec6513cb402bb6c723e10259e334b439047fa`
 
-Implementation commits: `99143b3`, `c34344e`
-
+Repair implementation: `69d2706`, `2ae950d`, `cb3ab93`
 Live URL: <https://cooldown-registry-proxy.sociobot.in>
 
 ## Delivered
 
-- Reworked the 390×844 first screen around the operator’s job. It names
-  platform/security teams, makes the sample primary, explains its result, and
-  shows privacy, offline, and price facts without scrolling.
-- Rebuilt the browser sample around `?demo=1` and `/demo`. It has a persistent
-  banner, reset, start-real exit, a separate `demo:` key, real-data preservation,
-  exit disposal, an offline shell, and three exact sample decisions.
-- Rebuilt `cooldown-registry-proxy demo` as a genuine isolated exercise. The
-  binary embeds its fixtures, creates a new temporary workspace, starts a
-  private mock registry, runs the production npm/PyPI/Cargo request handlers,
-  and writes cache files, four refusal rows, and `report.json`.
-- Expanded `.factory/claims.json` to 20 claims. Every entry has exactly one
-  tagged, individually filtered test. Public copy was reduced or split until
-  every retained product statement had observable evidence.
-- Added real direct routes, a designed HTTP 404, full per-route metadata,
-  shared navigation/footer, route announcements, heading focus, Back scroll
-  restoration, legal links, internal link crawling, and hardened same-origin
-  CSP.
-- Removed the broken, unprovisioned paid checkout and stale Operator Pack.
-  The release is explicitly MIT-only; no unavailable purchase is advertised.
-- Preserved the single-mode topographic quarantine visual identity and its
-  original art. Mobile layout, sticky demo controls, switch hit target, focus
-  states, and terminal evidence were polished without adopting a generic
-  product template.
-- Updated the catalog line, copy audit, demo contract, review finding map, and
-  live screenshots.
+- Closed F-2-1 with a real production `serve` claim test. It issues cooldown
+  and advisory denials, then matches each response request ID to one JSONL row.
+- Closed F-2-2 with a clean-clone build claim. It starts without dependencies,
+  `target`, or `dist`, runs the documented build, and checks both output paths.
+- Closed F-2-3 with a real production `serve` filesystem claim. It sends
+  allowed and blocked requests, checks the configured cache/log paths, and
+  proves the default working-directory path is unused.
+- Expanded `.factory/claims.json` from 20 to 22 exact one-test-per-claim entries
+  and added a source-copy cross-check for all three round-two claims.
+- Updated the verb-first catalog description and the full copy audit.
+- Rechecked every review-1 finding rather than assuming its prior closure.
+  The cumulative map is `.factory/polish-2.md`.
+- Preserved the Rust single binary, static deployment class, isolated browser
+  and CLI demos, and the original topographic quarantine visual system.
 
-## Verification
+## Clean-clone verification
 
-Clean clone: `/tmp/cooldown-polish-clean.XVRljr` at `c34344e`.
+Verified commit `cb3ab9328d12587b5c4e65ee93911e0df8a674ed` in
+`/tmp/cooldown-polish2-clean.AQeINw`.
 
 ```sh
-npm ci
-# Each command from .factory/claims.json, executed separately
+npm ci --ignore-scripts
+# Every command in .factory/claims.json, one at a time
 npm test
+cargo clippy --all-targets -- -D warnings
 npm run build
 npm run test:browser -- --reporter=list
 cargo package --allow-dirty
@@ -94,51 +45,50 @@ cargo package --allow-dirty
 
 Results:
 
-- Claims: PASS — all 20 manifest commands. Each command ran exactly one tagged
-  test; the manifest/source cross-check also passed.
-- `npm test`: PASS — 7 Rust tests and 27 Node site/content/claim tests.
-- Browser: PASS — 13 Playwright tests at desktop and 390×844. Four route axe
-  scans plus the designed 404 had zero serious or critical violations.
-- Privacy: PASS — the complete landing-to-demo flow made same-origin requests
-  only; live CSP is `connect-src 'self'`.
-- Offline: PASS — `/demo/` retained all three decisions after service-worker
-  control, network disablement, and reload.
-- Build: PASS — `dist/bin/cooldown-registry-proxy` and `dist/site/` produced.
-  Initial JS is 5.58 kB raw / 2.49 kB gzip. CSS is 16.38 kB raw / 4.27 kB
-  gzip. Hero artwork is 141.10 kB.
-- Package: PASS — `cooldown-registry-proxy v0.1.0` packaged and verified.
-- Copy: PASS — seven-word verb-first headline, no banned words, no sentence
-  above 22 words, and a 75-character verb-first catalog description.
+- Claims: PASS, 22/22 separately executed. Each command selected exactly one
+  tagged test.
+- Aggregate tests: PASS, 7 Rust and 30 Node tests.
+- Browser: PASS, 13/13 at desktop and 390 × 844.
+- Accessibility: zero serious/critical axe findings across Home, Demo, Privacy,
+  Terms, and the designed 404; keyboard, focus, and route announcement checks
+  passed.
+- Privacy/offline: same-origin-only browser flow and controlled offline demo
+  reload passed.
+- Build: `dist/bin/cooldown-registry-proxy` and `dist/site/index.html` produced.
+- Package: `cargo package --allow-dirty` packaged and recompiled v0.1.0.
+- Budgets: initial JS 5.58 kB raw / 2.49 kB gzip; CSS 16.38 kB raw / 4.27 kB
+  gzip; hero WebP 141,096 bytes.
 
 ## Deployment and cold live audit
 
-Deployment used the work-order command and unchanged static artifact class:
+Deployed the static output with the work-order command:
 
 ```sh
 /opt/fleet/lib/deploy-static.sh cooldown-registry-proxy dist/site
 ```
 
-Final Azure Static Web Apps deployment
-`95bcc4b3-5059-42a5-8abd-37ec745866c8` succeeded. The custom domain returned
-HTTPS 200.
+Azure Static Web Apps deployment `66326f6b-dd3c-4095-bc3b-dbb007a54dab`
+succeeded. The custom domain returned HTTPS 200.
 
-Cold live checks after deployment:
-
-- `verify-url.sh`: 815 ms load; no console errors; title, `lang=en`, main,
-  single h1, alt text, and button names passed.
-- Playwright against the live domain: 13/13 passed, including `?demo=1`, reset,
-  real-data sentinel preservation, exit cleanup, offline reload, exact sample
-  values, focus/Back, links, metadata, mobile layout, axe, and 404 behavior.
-- Route probe: home/query/demo/privacy/terms variants returned 200. The unknown
-  route returned the product 404 with HTTP 404. Social/touch/robots/sitemap
-  assets returned 200.
+- `/opt/fleet/lib/verify-url.sh`: 687 ms network-idle load, no console errors,
+  correct title/lang, one h1, main landmark, complete image alt text, and named
+  buttons.
+- Cold live Playwright: 13/13, including direct/reload/back routing, heading
+  focus, route titles/metadata, first-screen fit, demo reset/isolation, offline
+  reload, same-origin privacy, keyboard use, link crawl, axe, and designed 404.
+- Route probe: `/`, `/?demo=1`, `/demo`, `/demo/`, Privacy/Terms variants,
+  robots, sitemap, social image, and touch icon returned 200. An unknown route
+  returned 404.
+- Security headers include self-only CSP, HSTS, DENY framing,
+  `X-Content-Type-Options`, Referrer-Policy, and restrictive Permissions-Policy.
+- Live `index.html` matched the deployed local build byte-for-byte at SHA-256
+  `6ca5ff8ef9b3d46e0cf243db69a769006e4ac066998f7075e30eb84c2d80f760`.
 - Live Lighthouse mobile: Performance 100, Accessibility 100, Best Practices
-  100, SEO 100; LCP 1.5 s, CLS 0, TBT 0 ms, Speed Index 0.9 s.
-- Evidence: `.factory/evidence/polish-1/`; full finding map:
-  `.factory/polish-1.md`.
+  100, SEO 100; LCP 1.53 s, CLS 0, TBT 0 ms, Speed Index 0.91 s.
+- Screenshots and verifier output are in `.factory/evidence/polish-2/`.
 
-## Known gaps
+## Known gaps and next steps
 
-None. The paid offer is intentionally absent because no working Sociobot
-billing product is provisioned. Reintroducing a paid tier would be a new scoped
-release requiring a live checkout and its own sandbox claim tests.
+None. No finding of any severity remains. The paid offer remains intentionally
+absent because no working Sociobot billing product is provisioned; adding one
+would be a separate release, not unfinished repair work.
