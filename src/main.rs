@@ -1,9 +1,15 @@
 use anyhow::{Context, Result};
 use clap::{Args, Parser, Subcommand};
-use cooldown_registry_proxy::{parse_duration, run_server, validate_policy_files, ServerConfig};
+use cooldown_registry_proxy::{
+    parse_duration, run_demo_scenario, run_server, validate_policy_files, ServerConfig,
+};
 use serde_json::json;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+const DEMO_EXCLUSIONS: &str = include_str!("../examples/demo/exclusions.json");
+const DEMO_ADVISORIES: &str = include_str!("../examples/demo/advisories.json");
+const DEMO_README: &str = include_str!("../examples/demo/README.md");
 
 #[derive(Debug, Parser)]
 #[command(name = "cooldown-registry-proxy", version, about, long_about = None)]
@@ -168,12 +174,6 @@ fn execute(cli: Cli) -> Result<()> {
     }
 }
 
-fn copy_demo_file(source: &Path, destination: &Path) -> Result<()> {
-    fs::copy(source, destination)
-        .with_context(|| format!("copy bundled demo file {}", source.display()))?;
-    Ok(())
-}
-
 fn run_demo(args: DemoArgs, json_output: bool) -> Result<()> {
     let stamp = format!(
         "{}-{}",
@@ -190,13 +190,17 @@ fn run_demo(args: DemoArgs, json_output: bool) -> Result<()> {
     let cache_dir = root.join("cache");
     fs::create_dir_all(&policy_dir)?;
     fs::create_dir_all(&cache_dir)?;
-    let bundled = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/demo");
     let exclusions = policy_dir.join("exclusions.json");
     let advisories = policy_dir.join("advisories.json");
-    copy_demo_file(&bundled.join("exclusions.json"), &exclusions)?;
-    copy_demo_file(&bundled.join("advisories.json"), &advisories)?;
-    copy_demo_file(&bundled.join("README.md"), &root.join("README.md"))?;
+    fs::write(&exclusions, DEMO_EXCLUSIONS)?;
+    fs::write(&advisories, DEMO_ADVISORIES)?;
+    fs::write(root.join("README.md"), DEMO_README)?;
     let summary = validate_policy_files(Some(&exclusions), Some(&advisories))?;
+    let report = run_demo_scenario(&root, &exclusions, &advisories)?;
+    fs::write(
+        root.join("report.json"),
+        serde_json::to_vec_pretty(&report)?,
+    )?;
     if json_output {
         println!(
             "{}",
@@ -206,6 +210,7 @@ fn run_demo(args: DemoArgs, json_output: bool) -> Result<()> {
                 "cache_dir": cache_dir,
                 "audit_log": root.join("refusals.jsonl"),
                 "policy": summary,
+                "report": report,
                 "note": "Isolated sample workspace; no existing cache, configuration, or logs were read."
             })
         );
@@ -215,6 +220,21 @@ fn run_demo(args: DemoArgs, json_output: bool) -> Result<()> {
         println!(
             "  policy: {} exclusions, {} advisory blocks",
             summary.exclusions, summary.blocked
+        );
+        for decision in &report.decisions {
+            println!(
+                "  {} {}@{}: {} (metadata visible: {}, direct HTTP {})",
+                decision.ecosystem,
+                decision.package,
+                decision.version,
+                decision.outcome.replace('_', " "),
+                decision.metadata_visible,
+                decision.direct_status
+            );
+        }
+        println!(
+            "  evidence: {} refusal records, {} cached files",
+            report.audit_records, report.cached_files
         );
         println!("  next: cooldown-registry-proxy serve --cache-dir {}/cache --exclusions {}/policy/exclusions.json --advisories {}/policy/advisories.json", root.display(), root.display(), root.display());
         println!("  sample data is isolated; remove this workspace when finished.");

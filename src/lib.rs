@@ -20,6 +20,24 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 use tiny_http::{Header, Method, Request, Response, Server, StatusCode};
 
+#[derive(Debug, Serialize)]
+pub struct DemoDecision {
+    pub ecosystem: Ecosystem,
+    pub package: &'static str,
+    pub version: &'static str,
+    pub outcome: &'static str,
+    pub metadata_visible: bool,
+    pub direct_status: u16,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DemoReport {
+    pub decisions: Vec<DemoDecision>,
+    pub audit_records: usize,
+    pub cached_files: usize,
+    pub upstream_requests: Vec<String>,
+}
+
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub listen: String,
@@ -522,7 +540,7 @@ impl App {
                 404,
                 json!({
                     "error": "version_in_cooldown",
-                    "message": format!("{package}@{version} is quarantined until {}", available_at.to_rfc3339()),
+                    "message": format!("{package}@{version} is blocked by cooldown until {}", available_at.to_rfc3339()),
                     "available_at": available_at,
                     "request_id": request_id
                 }),
@@ -1057,6 +1075,178 @@ pub fn run_server(config: ServerConfig) -> Result<()> {
     Ok(())
 }
 
+/// Exercise the same request handlers used by the network server against a
+/// private mock registry. The caller supplies paths inside a new demo
+/// workspace, so no operator cache, policy, or audit file can be read.
+pub fn run_demo_scenario(
+    workspace: &Path,
+    exclusions: &Path,
+    advisories: &Path,
+) -> Result<DemoReport> {
+    let upstream = Server::http("127.0.0.1:0").map_err(|error| anyhow!(error.to_string()))?;
+    let upstream_url = format!("http://{}", upstream.server_addr());
+    let upstream_for_thread = upstream_url.clone();
+    let fresh = Utc::now() - chrono::Duration::hours(18);
+    let old = Utc::now() - chrono::Duration::days(10);
+    let cargo_old = Utc::now() - chrono::Duration::days(32);
+    let upstream_thread = thread::spawn(move || -> Result<Vec<String>> {
+        let mut requests = Vec::new();
+        for _ in 0..5 {
+            let Some(request) = upstream.recv_timeout(Duration::from_secs(10))? else {
+                bail!("demo registry timed out waiting for a proxy request")
+            };
+            let path = request.url().to_owned();
+            requests.push(path.clone());
+            let (content_type, body) = match path.as_str() {
+                "/signal-router" => (
+                    "application/json",
+                    json!({
+                        "name": "signal-router",
+                        "dist-tags": {"latest": "4.8.0"},
+                        "time": {"4.8.0": fresh.to_rfc3339()},
+                        "versions": {"4.8.0": {"dist": {"tarball": format!("{upstream_for_thread}/files/signal-router-4.8.0.tgz")}}}
+                    })
+                    .to_string()
+                    .into_bytes(),
+                ),
+                "/pypi/field-notes/json" => (
+                    "application/json",
+                    json!({
+                        "info": {"name": "field-notes"},
+                        "releases": {"2.3.1": [{
+                            "filename": "field_notes-2.3.1-py3-none-any.whl",
+                            "upload_time_iso_8601": old.to_rfc3339(),
+                            "url": format!("{upstream_for_thread}/files/field_notes-2.3.1-py3-none-any.whl"),
+                            "digests": {"sha256": "demo"},
+                            "yanked": false
+                        }]}
+                    })
+                    .to_string()
+                    .into_bytes(),
+                ),
+                "/files/field_notes-2.3.1-py3-none-any.whl" => {
+                    ("application/octet-stream", b"bundled-pypi-demo-artifact".to_vec())
+                }
+                "/va/ul/vault-door" => (
+                    "text/plain",
+                    format!(
+                        "{}\n",
+                        json!({"name": "vault-door", "vers": "0.9.6", "cksum": "demo", "deps": [], "features": {}})
+                    )
+                    .into_bytes(),
+                ),
+                "/api/v1/crates/vault-door" => (
+                    "application/json",
+                    json!({"versions": [{"num": "0.9.6", "created_at": cargo_old.to_rfc3339()}]})
+                        .to_string()
+                        .into_bytes(),
+                ),
+                _ => ("application/json", b"{\"error\":\"fixture_not_found\"}".to_vec()),
+            };
+            let response = Response::from_data(body).with_header(
+                Header::from_bytes("Content-Type", content_type)
+                    .map_err(|_| anyhow!("invalid demo content type"))?,
+            );
+            request.respond(response)?;
+        }
+        Ok(requests)
+    });
+
+    let app = App::new(ServerConfig {
+        listen: "127.0.0.1:0".into(),
+        public_url: Some("http://demo.proxy".into()),
+        cooldown: Duration::from_secs(7 * 86_400),
+        cache_dir: workspace.join("cache"),
+        exclusions: Some(exclusions.to_path_buf()),
+        advisories: Some(advisories.to_path_buf()),
+        advisory_urls: Vec::new(),
+        advisory_refresh: Duration::from_secs(3600),
+        audit_log: workspace.join("refusals.jsonl"),
+        offline: false,
+        cache_ttl: Duration::from_secs(3600),
+        npm_upstream: upstream_url.clone(),
+        pypi_upstream: upstream_url.clone(),
+        cargo_index_upstream: upstream_url.clone(),
+        crates_api_upstream: upstream_url,
+    })?;
+
+    let npm_metadata = app.handle(&Method::Get, "/npm/signal-router", Some("demo.proxy"));
+    let npm_json: Value = serde_json::from_slice(&npm_metadata.body)?;
+    let npm_direct = app.handle(
+        &Method::Get,
+        "/npm-tarball/signal-router/4.8.0/signal-router-4.8.0.tgz",
+        Some("demo.proxy"),
+    );
+
+    let pypi_metadata = app.handle(
+        &Method::Get,
+        "/pypi/simple/field-notes/",
+        Some("demo.proxy"),
+    );
+    let pypi_body = String::from_utf8(pypi_metadata.body)?;
+    let pypi_direct = app.handle(
+        &Method::Get,
+        "/pypi-files/field-notes/field_notes-2.3.1-py3-none-any.whl",
+        Some("demo.proxy"),
+    );
+
+    let cargo_metadata = app.handle(&Method::Get, "/cargo/va/ul/vault-door", Some("demo.proxy"));
+    let cargo_body = String::from_utf8(cargo_metadata.body)?;
+    let cargo_direct = app.handle(
+        &Method::Get,
+        "/cargo-crates/vault-door/0.9.6/download",
+        Some("demo.proxy"),
+    );
+
+    let upstream_requests = upstream_thread
+        .join()
+        .map_err(|_| anyhow!("demo registry thread failed"))??;
+    let audit_records = fs::read_to_string(workspace.join("refusals.jsonl"))?
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .count();
+    let cached_files = ["metadata", "artifacts"]
+        .iter()
+        .map(|name| {
+            fs::read_dir(workspace.join("cache").join(name))
+                .map(|items| items.filter_map(Result::ok).count())
+                .unwrap_or_default()
+        })
+        .sum();
+
+    Ok(DemoReport {
+        decisions: vec![
+            DemoDecision {
+                ecosystem: Ecosystem::Npm,
+                package: "signal-router",
+                version: "4.8.0",
+                outcome: "blocked_by_cooldown",
+                metadata_visible: npm_json["versions"].get("4.8.0").is_some(),
+                direct_status: npm_direct.status,
+            },
+            DemoDecision {
+                ecosystem: Ecosystem::Pypi,
+                package: "field-notes",
+                version: "2.3.1",
+                outcome: "allowed",
+                metadata_visible: pypi_body.contains("field_notes-2.3.1"),
+                direct_status: pypi_direct.status,
+            },
+            DemoDecision {
+                ecosystem: Ecosystem::Cargo,
+                package: "vault-door",
+                version: "0.9.6",
+                outcome: "blocked_by_advisory",
+                metadata_visible: cargo_body.contains("0.9.6"),
+                direct_status: cargo_direct.status,
+            },
+        ],
+        audit_records,
+        cached_files,
+        upstream_requests,
+    })
+}
+
 fn respond(app: Arc<App>, request: Request) {
     let host = request
         .headers()
@@ -1264,5 +1454,35 @@ mod tests {
         upstream_thread.join().unwrap();
         let audit = fs::read_to_string(dir.join("audit.jsonl")).unwrap();
         assert!(audit.contains("cooldown_block"));
+    }
+
+    #[test]
+    fn bundled_demo_scenario_exercises_all_proxy_paths() {
+        let dir = std::env::temp_dir().join(format!(
+            "crp-demo-integration-{}-{}",
+            std::process::id(),
+            Utc::now().timestamp_nanos_opt().unwrap_or_default()
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        let exclusions = dir.join("exclusions.json");
+        let advisories = dir.join("advisories.json");
+        fs::write(
+            &exclusions,
+            include_str!("../examples/demo/exclusions.json"),
+        )
+        .unwrap();
+        fs::write(
+            &advisories,
+            include_str!("../examples/demo/advisories.json"),
+        )
+        .unwrap();
+        let report = run_demo_scenario(&dir, &exclusions, &advisories).unwrap();
+        assert_eq!(report.decisions.len(), 3);
+        assert_eq!(report.decisions[0].direct_status, 404);
+        assert_eq!(report.decisions[1].direct_status, 200);
+        assert_eq!(report.decisions[2].direct_status, 451);
+        assert_eq!(report.audit_records, 4);
+        assert_eq!(report.cached_files, 5);
+        fs::remove_dir_all(dir).unwrap();
     }
 }

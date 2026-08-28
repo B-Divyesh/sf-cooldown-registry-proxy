@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
   <title id="title">Cooldown Registry Proxy CLI demo</title>
-  <desc id="desc">A terminal recording still showing the demo command create an isolated sample workspace and validate one exclusion and one advisory block.</desc>
+  <desc id="desc">A terminal recording showing the demo command check one allowed release, one cooldown block, and one advisory block.</desc>
   <rect width="960" height="360" fill="#04100d"/>
   <rect width="960" height="48" fill="#0d241e"/>
   <circle cx="28" cy="24" r="7" fill="#ff6b4a"/><circle cx="52" cy="24" r="7" fill="#f4c95d"/><circle cx="76" cy="24" r="7" fill="#91c9a8"/>
-  <g fill="#f3efdd" font-family="ui-monospace, monospace" font-size="20"><text x="36" y="98" fill="#91c9a8">$ cooldown-registry-proxy demo</text><text x="36" y="145">Cooldown Registry Proxy sample workspace</text><text x="36" y="190" fill="#b9c5b8">path: /tmp/cooldown-registry-proxy-demo-…</text><text x="36" y="235" fill="#b9c5b8">policy: 1 exclusions, 1 advisory blocks</text><text x="36" y="280" fill="#f4c95d">sample data is isolated; remove it when finished.</text></g>
+  <g fill="#f3efdd" font-family="ui-monospace, monospace" font-size="18"><text x="36" y="88" fill="#91c9a8">$ cooldown-registry-proxy demo</text><text x="36" y="126">npm signal-router@4.8.0: blocked by cooldown · HTTP 404</text><text x="36" y="164">pypi field-notes@2.3.1: allowed · HTTP 200</text><text x="36" y="202">cargo vault-door@0.9.6: blocked by advisory · HTTP 451</text><text x="36" y="240" fill="#b9c5b8">evidence: 4 refusal records, 5 cached files</text><text x="36" y="278" fill="#b9c5b8">path: /tmp/cooldown-registry-proxy-demo-…</text><text x="36" y="316" fill="#f4c95d">sample data is isolated; remove it when finished.</text></g>
 </svg>

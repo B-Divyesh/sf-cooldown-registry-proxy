@@ -11,14 +11,24 @@ if (!isDemo && new URL(window.location.href).searchParams.get('demo') === '1') w
 function announcePage() {
   const heading = $('main h1')
   if (!heading) return
-  const announcer = document.createElement('p')
-  announcer.className = 'sr-only'
-  announcer.setAttribute('aria-live', 'polite')
-  announcer.textContent = `${document.title}. ${heading.textContent.trim()}`
-  document.body.append(announcer)
+  let announcer = $('#route-status')
+  if (!announcer) {
+    announcer = document.createElement('p')
+    announcer.id = 'route-status'
+    announcer.className = 'sr-only'
+    announcer.setAttribute('aria-live', 'polite')
+    document.body.append(announcer)
+  }
+  announcer.textContent = ''
+  requestAnimationFrame(() => { announcer.textContent = `${document.title}. ${heading.textContent.trim()}` })
   heading.focus({ preventScroll: true })
 }
-window.addEventListener('pageshow', announcePage, { once: true })
+window.addEventListener('pageshow', announcePage)
+$('.skip-link')?.addEventListener('click', () => requestAnimationFrame(() => {
+  const main = $('#main')
+  main?.setAttribute('tabindex', '-1')
+  main?.focus()
+}))
 
 const cooldown = $('#cooldown')
 const cooldownOutput = $('#cooldown-output')
@@ -44,7 +54,7 @@ function renderDemo() {
     return item
   }))
   const summary = policySummary(RELEASES, days, offline.checked)
-  demoStatus.textContent = `Sample policy recalculated: ${summary.allowed || 0} allowed, ${summary.quarantine || 0} blocked by cooldown, ${summary.blocked || 0} blocked by advisory, ${summary.offline || 0} cache misses.`
+  demoStatus.textContent = `Sample policy recalculated: ${summary.allowed || 0} allowed, ${summary.cooldown || 0} blocked by cooldown, ${summary.blocked || 0} blocked by advisory, ${summary.offline || 0} cache misses.`
   saveDemo()
 }
 if (isDemo && cooldown && offline) {
@@ -60,6 +70,7 @@ if (isDemo && cooldown && offline) {
     renderDemo()
     demoStatus.textContent = 'Sample demo reset to the original 7-day policy.'
   })
+  $('#start-real')?.addEventListener('click', () => localStorage.removeItem(DEMO_KEY))
   renderDemo()
 }
 

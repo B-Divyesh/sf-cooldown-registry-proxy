@@ -15,7 +15,7 @@ export function evaluateRelease(release, cooldownDays, offline = false) {
   if (release.ageHours < cooldownHours) {
     const hoursLeft = cooldownHours - release.ageHours
     const roundedDays = Math.ceil(hoursLeft / 24)
-    return { state: 'quarantine', label: 'Blocked by cooldown', detail: `${roundedDays}d remain before this version is allowed.` }
+    return { state: 'cooldown', label: 'Blocked by cooldown', detail: `${roundedDays}d remain before this version is allowed.` }
   }
   return { state: 'allowed', label: offline ? 'Allowed from sample cache' : 'Allowed', detail: offline ? 'This sample release is already cached.' : 'This release is older than the cooldown.' }
 }

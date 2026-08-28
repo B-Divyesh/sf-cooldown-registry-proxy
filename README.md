@@ -2,24 +2,23 @@
 
 Block new packages until their cooldown ends.
 
-Cooldown Registry Proxy is for platform and security teams. It applies one npm,
-PyPI, and Cargo cooldown across laptops and CI. The Rust binary runs on your
-network. It does not need a browser extension or a TLS interception certificate.
+Cooldown Registry Proxy is for platform and security teams. One Rust binary
+checks npm, PyPI, and Cargo requests through a network proxy.
 
-The proxy checks metadata and package downloads. It can record refused requests
-to a JSONL file. It does not host private packages, authenticate users, or scan
-package code.
+It filters registry lists and rechecks direct package downloads. Every blocked
+request adds a JSONL refusal record. Private package hosting, user
+authentication, and code scanning are outside its scope.
 
 ## Install
 
-Build with Rust 1.85 or newer.
+Build the single binary with Cargo:
 
 ```sh
 cargo build --release
 install -m 0755 target/release/cooldown-registry-proxy /usr/local/bin/
 ```
 
-## Try the sample
+## Try the isolated sample
 
 Run the bundled sample from any directory:
 
@@ -27,10 +26,19 @@ Run the bundled sample from any directory:
 cooldown-registry-proxy demo
 ```
 
-The command creates a new temporary workspace. It copies and validates bundled
-policy fixtures there. It does not read an existing cache, configuration, or
-audit log. See [`.factory/demo.md`](.factory/demo.md) for browser and CLI demo
-details.
+The command creates a new temporary workspace. It runs the actual proxy paths
+against bundled npm, PyPI, and Cargo fixtures.
+
+The report shows an allowed download, a cooldown block, and an advisory block.
+It also records cache files and JSONL refusals inside the workspace. Existing
+configuration, caches, and logs are never read.
+
+Open <https://cooldown-registry-proxy.sociobot.in/?demo=1> for the browser
+sample. Its state uses a separate `demo:` browser key. The sample reloads
+offline after the first visit.
+
+See [`.factory/demo.md`](.factory/demo.md) for the sample contract and reset
+steps.
 
 ## Run the proxy
 
@@ -47,7 +55,7 @@ cooldown-registry-proxy serve \
   --audit-log /var/log/cooldown-refusals.jsonl
 ```
 
-Use a trusted private network for HTTP. Put TLS at your own ingress for other
+Use HTTP only on a trusted private network. Add TLS at your ingress for other
 networks.
 
 ### npm
@@ -76,8 +84,8 @@ registry = "sparse+http://registry.internal:8787/cargo/"
 
 ## Policy files
 
-Exclusions require a package version, expiry, and reason. Advisory blocks use
-the same package coordinates and include an ID and reason.
+Each exclusion needs a package version, expiry, and reason. Advisory blocks
+override exclusions for the same package version.
 
 ```sh
 cooldown-registry-proxy validate \
@@ -92,19 +100,22 @@ cooldown-registry-proxy validate \
 npm ci
 npm test
 npm run test:claims
+npm run test:browser
 npm run build
 cargo package --allow-dirty
 ```
 
-`npm run build` writes the binary to `dist/bin/` and the static documentation
-site to `dist/site/`. The factory deploys `dist/site/`; it owns deployment and
-publishing credentials. Do not publish from this repository.
+`npm run build` writes the binary to `dist/bin/`. It writes the static site to
+`dist/site/`. The factory deploys the site and owns publishing credentials.
 
 ## Privacy and security
 
-The documentation site has no analytics or third-party runtime scripts. Your
-proxy cache and refusal log can contain package names, so protect them on your
-host. Read [`SECURITY.md`](SECURITY.md) before reporting a vulnerability.
+The documentation site loads no analytics or third-party runtime code. The
+proxy contacts only registry and advisory URLs in its configuration.
+
+Cache and refusal files stay in the directory you choose. They can contain
+package names, so protect that directory. Read [`SECURITY.md`](SECURITY.md)
+before reporting a vulnerability.
 
 ## License
 

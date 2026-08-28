@@ -1,6 +1,6 @@
 {
   "globalHeaders": {
-    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self' https://api.sociobot.in; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests",
     "X-Frame-Options": "DENY",
     "Permissions-Policy": "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()",
     "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
@@ -8,6 +8,18 @@
     "X-Content-Type-Options": "nosniff"
   },
   "routes": [
+    {
+      "route": "/demo",
+      "rewrite": "/demo/index.html"
+    },
+    {
+      "route": "/privacy",
+      "rewrite": "/privacy/index.html"
+    },
+    {
+      "route": "/terms",
+      "rewrite": "/terms/index.html"
+    },
     {
       "route": "/assets/*",
       "headers": {
